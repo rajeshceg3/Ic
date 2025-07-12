@@ -20,42 +20,125 @@
             z-index: 10;
         }
         .leaflet-popup-content-wrapper {
+            background-color: #FDF6E3; /* Pastel Cream */
+            color: #586E75; /* Pastel Dark Slate */
             border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .leaflet-popup-content {
-            margin: 1rem;
+            margin: 1.25rem;
             font-size: 1rem;
+            line-height: 1.6;
+        }
+        .leaflet-popup-tip {
+            background-color: #FDF6E3; /* Pastel Cream */
         }
         /* Custom scrollbar for sidebar */
         #poi-sidebar::-webkit-scrollbar {
             width: 8px;
         }
         #poi-sidebar::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: #E3FDF6; /* Pastel Mint */
         }
         #poi-sidebar::-webkit-scrollbar-thumb {
-            background: #888;
+            background: #93A1A1; /* Pastel Light Slate */
             border-radius: 4px;
         }
         #poi-sidebar::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #586E75; /* Pastel Dark Slate */
+        }
+
+        /* Fade-in animation for the page */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        body {
+            background: linear-gradient(-45deg, #FDF6E3, #E3FDF6, #FDF6E3, #E3FDF6);
+            background-size: 400% 400%;
+            animation: fadeIn 1s ease-in-out, gradient 15s ease infinite;
+        }
+
+        /* Hover effect for buttons */
+        .hover-effect:hover {
+            transform: scale(1.05);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        /* Hover effect for map markers */
+        .leaflet-marker-icon:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        /* Loading animation */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(253, 246, 227, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #586E75;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pastel-cream': '#FDF6E3',
+                        'pastel-mint': '#E3FDF6',
+                        'pastel-dark-slate': '#586E75',
+                        'pastel-light-slate': '#93A1A1',
+                        'pastel-blue': '#268BD2',
+                        'pastel-cyan': '#2AA198',
+                        'pastel-red': 'rgba(211, 85, 85, 0.8)',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-gray-100">
+<body>
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+    </div>
 
     <div class="flex flex-col md:flex-row h-screen">
         <!-- Sidebar for POI details -->
-        <div id="poi-sidebar" class="w-full md:w-1/3 lg:w-1/4 bg-white shadow-lg p-6 overflow-y-auto transition-transform duration-300 ease-in-out transform -translate-x-full md:translate-x-0 z-20">
-            <button id="close-sidebar" class="md:hidden absolute top-4 right-4 text-gray-600 hover:text-gray-900">
+        <div id="poi-sidebar" class="w-full md:w-1/3 lg:w-1/4 bg-pastel-mint shadow-lg p-8 overflow-y-auto transition-transform duration-300 ease-in-out transform -translate-x-full md:translate-x-0 z-20 leading-relaxed">
+            <button id="close-sidebar" class="md:hidden absolute top-6 right-6 text-pastel-dark-slate hover:text-pastel-cyan">
                 <i class="fas fa-times fa-lg"></i>
             </button>
             <div id="poi-content">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">Explore the Ring Road</h2>
-                <p class="text-gray-600">Click on a marker on the map to discover Iceland's stunning points of interest. Each marker reveals a unique attraction waiting to be explored.</p>
-                <div class="mt-6 border-t pt-4">
-                    <h3 class="text-lg font-semibold text-gray-700">Route Information</h3>
-                    <ul class="mt-2 text-gray-600 space-y-2">
+                <h2 class="text-3xl font-bold mb-5 text-pastel-dark-slate">Explore the Ring Road</h2>
+                <p class="text-pastel-light-slate mb-8">Click on a marker on the map to discover Iceland's stunning points of interest. Each marker reveals a unique attraction waiting to be explored.</p>
+                <div class="mt-8 border-t border-pastel-light-slate pt-8">
+                    <h3 class="text-xl font-semibold text-pastel-dark-slate mb-4">Route Information</h3>
+                    <ul class="mt-2 text-pastel-light-slate space-y-3">
                         <li><strong>Total Length:</strong> ~1,332 km (828 miles)</li>
                         <li><strong>Estimated Driving Time:</strong> ~16-17 hours (non-stop)</li>
                         <li><strong>Suggested Direction:</strong> Counter-clockwise (South coast first)</li>
@@ -67,11 +150,11 @@
         <!-- Main Map Area -->
         <div class="w-full md:w-2/3 lg:w-3/4 relative">
             <div id="map"></div>
-             <button id="menu-button" class="md:hidden absolute top-4 left-4 bg-white p-2 rounded-full shadow-md z-30">
-                <i class="fas fa-bars fa-lg"></i>
+             <button id="menu-button" class="md:hidden absolute top-4 left-4 bg-pastel-mint p-2 rounded-full shadow-md z-30">
+                <i class="fas fa-bars fa-lg text-pastel-dark-slate"></i>
             </button>
-             <button id="user-location-button" class="absolute bottom-4 right-4 bg-white p-3 rounded-full shadow-md z-30 hover:bg-gray-100 transition-colors">
-                <i class="fas fa-location-arrow fa-lg text-blue-500"></i>
+             <button id="user-location-button" class="absolute bottom-4 right-4 bg-pastel-mint p-3 rounded-full shadow-md z-30 hover:bg-pastel-cream transition-colors hover-effect">
+                <i class="fas fa-location-arrow fa-lg text-pastel-blue"></i>
             </button>
         </div>
     </div>
@@ -219,16 +302,26 @@
 
         // --- ROUTE & MARKERS ---
         // Draw the Ring Road
-        const ringRoad = L.polyline(ringRoadCoords, { color: 'rgba(239, 68, 68, 0.8)', weight: 4 }).addTo(map);
+        const ringRoad = L.polyline(ringRoadCoords, { color: 'rgba(211, 85, 85, 0.8)', weight: 4 }).addTo(map);
         map.fitBounds(ringRoad.getBounds().pad(0.2));
 
         // Custom Icon definitions
+        const createSvgIcon = (svg) => {
+            return L.divIcon({
+                html: svg,
+                className: 'custom-div-icon',
+                iconSize: [36, 36],
+                iconAnchor: [18, 36],
+                popupAnchor: [0, -36]
+            });
+        };
+
         const icons = {
-            waterfall: L.icon({ iconUrl: 'https://img.icons8.com/ios-filled/50/3b82f6/waterfall.png', iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32] }),
-            geothermal: L.icon({ iconUrl: 'https://img.icons8.com/ios-filled/50/f59e0b/geothermal.png', iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32] }),
-            town: L.icon({ iconUrl: 'https://img.icons8.com/ios-filled/50/ef4444/city.png', iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32] }),
-            landmark: L.icon({ iconUrl: 'https://img.icons8.com/ios-filled/50/1f2937/mountain.png', iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32] }),
-            park: L.icon({ iconUrl: 'https://img.icons8.com/ios-filled/50/6366f1/park.png', iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32] }),
+            waterfall: createSvgIcon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#268BD2" width="36px" height="36px"><path d="M12 0C7.58 0 4 3.58 4 8c0 4.42 8 16 8 16s8-11.58 8-16c0-4.42-3.58-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/><path d="M12 6l-3 4h2v4h2v-4h2z"/></svg>`),
+            geothermal: createSvgIcon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#D33682" width="36px" height="36px"><path d="M12 0C7.58 0 4 3.58 4 8c0 4.42 8 16 8 16s8-11.58 8-16c0-4.42-3.58-8-8-8zm-1 14H9v-2h2v2zm2-2h-2V8h2v4zm2 2h-2v-2h2v2z"/></svg>`),
+            town: createSvgIcon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#859900" width="36px" height="36px"><path d="M12 0C7.58 0 4 3.58 4 8c0 4.42 8 16 8 16s8-11.58 8-16c0-4.42-3.58-8-8-8zm-2 13h-2v-2h2v2zm0-3h-2V8h2v2zm4 3h-2v-2h2v2zm0-3h-2V8h2v2zm2 3h-2v-2h2v2z"/></svg>`),
+            landmark: createSvgIcon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#CB4B16" width="36px" height="36px"><path d="M12 0C7.58 0 4 3.58 4 8c0 4.42 8 16 8 16s8-11.58 8-16c0-4.42-3.58-8-8-8zm-1.5 13L9 10.5l1.5-1.5L12 10.5l1.5-1.5L15 10.5 13.5 12l1.5 1.5-1.5 1.5-1.5-1.5-1.5 1.5z"/></svg>`),
+            park: createSvgIcon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2AA198" width="36px" height="36px"><path d="M12 0C7.58 0 4 3.58 4 8c0 4.42 8 16 8 16s8-11.58 8-16c0-4.42-3.58-8-8-8zm-2 14l-4-4 1.41-1.41L10 11.17l4.59-4.58L16 8l-6 6z"/></svg>`)
         };
 
         const sidebar = document.getElementById('poi-sidebar');
@@ -238,6 +331,15 @@
         pointsOfInterest.forEach(poi => {
             const marker = L.marker([poi.lat, poi.lng], { icon: icons[poi.category] || icons.landmark }).addTo(map);
             
+            marker.bindPopup(`<b>${poi.name}</b>`);
+
+            marker.on('mouseover', function (e) {
+                this.openPopup();
+            });
+            marker.on('mouseout', function (e) {
+                this.closePopup();
+            });
+
             marker.on('click', () => {
                 updateSidebar(poi);
                 if (window.innerWidth < 768) {
@@ -249,11 +351,11 @@
         // --- UI INTERACTIVITY ---
         function updateSidebar(poi) {
             poiContent.innerHTML = `
-                <h2 class="text-3xl font-bold mb-3 text-gray-900">${poi.name}</h2>
-                <img src="${poi.image}" alt="${poi.name}" class="w-full h-48 object-cover rounded-lg shadow-md mb-4" onerror="this.onerror=null;this.src='https://placehold.co/400x300/cccccc/ffffff?text=Image+Not+Found';">
-                <p class="text-gray-700 mb-4">${poi.description}</p>
-                <a href="${poi.link}" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                    Learn More <i class="fas fa-external-link-alt ml-1"></i>
+                <h2 class="text-4xl font-bold mb-4 text-pastel-dark-slate">${poi.name}</h2>
+                <img src="${poi.image}" alt="${poi.name}" class="w-full h-48 object-cover rounded-lg shadow-md mb-6" onerror="this.onerror=null;this.src='https://placehold.co/400x300/cccccc/ffffff?text=Image+Not+Found';">
+                <p class="text-pastel-light-slate mb-6">${poi.description}</p>
+                <a href="${poi.link}" target="_blank" rel="noopener noreferrer" class="block w-full bg-pastel-blue text-white font-semibold text-center py-3 rounded-lg hover:bg-pastel-cyan transition-colors hover-effect">
+                    Learn More <i class="fas fa-external-link-alt ml-2"></i>
                 </a>
             `;
         }
@@ -297,6 +399,14 @@
             alert(e.message);
         });
 
+        // Hide loading overlay when the page is fully loaded
+        window.addEventListener('load', () => {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 500);
+        });
     </script>
 </body>
 </html>
