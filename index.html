@@ -24,6 +24,7 @@
             color: #586E75; /* Pastel Dark Slate */
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease-in-out;
         }
         .leaflet-popup-content {
             margin: 1.25rem;
@@ -48,10 +49,13 @@
             background: #586E75; /* Pastel Dark Slate */
         }
 
-        /* Fade-in animation for the page */
+        /* Fade-in animation for the page and sidebar content */
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
         }
         @keyframes gradient {
             0% { background-position: 0% 50%; }
@@ -66,8 +70,9 @@
 
         /* Hover effect for buttons */
         .hover-effect:hover {
-            transform: scale(1.05);
+            transform: scale(1.03);
             transition: transform 0.2s ease-in-out;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
 
         /* Hover effect for map markers */
@@ -129,16 +134,16 @@
 
     <div class="flex flex-col md:flex-row h-screen">
         <!-- Sidebar for POI details -->
-        <div id="poi-sidebar" class="w-full md:w-1/3 lg:w-1/4 bg-pastel-mint shadow-lg p-8 overflow-y-auto transition-transform duration-300 ease-in-out transform -translate-x-full md:translate-x-0 z-20 leading-relaxed">
-            <button id="close-sidebar" class="md:hidden absolute top-6 right-6 text-pastel-dark-slate hover:text-pastel-cyan">
+        <div id="poi-sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-pastel-mint shadow-lg p-6 overflow-y-auto transition-transform duration-300 ease-in-out transform -translate-x-full md:translate-x-0 z-20 leading-relaxed">
+            <button id="close-sidebar" class="md:hidden absolute top-4 right-4 text-pastel-dark-slate hover:text-pastel-cyan">
                 <i class="fas fa-times fa-lg"></i>
             </button>
             <div id="poi-content">
-                <h2 class="text-3xl font-bold mb-5 text-pastel-dark-slate">Explore the Ring Road</h2>
-                <p class="text-pastel-light-slate mb-8">Click on a marker on the map to discover Iceland's stunning points of interest. Each marker reveals a unique attraction waiting to be explored.</p>
-                <div class="mt-8 border-t border-pastel-light-slate pt-8">
-                    <h3 class="text-xl font-semibold text-pastel-dark-slate mb-4">Route Information</h3>
-                    <ul class="mt-2 text-pastel-light-slate space-y-3">
+                <h2 class="text-3xl font-bold mb-4 text-pastel-dark-slate">Explore the Ring Road</h2>
+                <p class="text-pastel-light-slate mb-6">Click on a marker on the map to discover Iceland's stunning points of interest. Each marker reveals a unique attraction waiting to be explored.</p>
+                <div class="mt-6 border-t border-pastel-light-slate pt-6">
+                    <h3 class="text-xl font-semibold text-pastel-dark-slate mb-3">Route Information</h3>
+                    <ul class="mt-2 text-pastel-light-slate space-y-2">
                         <li><strong>Total Length:</strong> ~1,332 km (828 miles)</li>
                         <li><strong>Estimated Driving Time:</strong> ~16-17 hours (non-stop)</li>
                         <li><strong>Suggested Direction:</strong> Counter-clockwise (South coast first)</li>
@@ -148,266 +153,18 @@
         </div>
 
         <!-- Main Map Area -->
-        <div class="w-full md:w-2/3 lg:w-3/4 relative">
+        <div class="w-full md:w-3/4 lg:w-4/5 relative">
             <div id="map"></div>
-             <button id="menu-button" class="md:hidden absolute top-4 left-4 bg-pastel-mint p-2 rounded-full shadow-md z-30">
+             <button id="menu-button" class="md:hidden absolute top-4 left-4 bg-pastel-mint p-3 rounded-full shadow-md z-30 hover-effect">
                 <i class="fas fa-bars fa-lg text-pastel-dark-slate"></i>
             </button>
-             <button id="user-location-button" class="absolute bottom-4 right-4 bg-pastel-mint p-3 rounded-full shadow-md z-30 hover:bg-pastel-cream transition-colors hover-effect">
+             <button id="user-location-button" class="absolute bottom-5 right-5 bg-pastel-mint p-3 rounded-full shadow-lg z-30 hover:bg-pastel-cream transition-colors hover-effect">
                 <i class="fas fa-location-arrow fa-lg text-pastel-blue"></i>
             </button>
         </div>
     </div>
 
-    <script>
-        // --- DATA ---
-        // In a real application, this would likely come from an API
-        const pointsOfInterest = [
-            {
-                name: "Þingvellir National Park",
-                category: "park",
-                description: "A site of historical, cultural, and geological significance, located in a rift valley that marks the crest of the Mid-Atlantic Ridge.",
-                lat: 64.2558,
-                lng: -21.1301,
-                image: "https://placehold.co/400x300/6366f1/ffffff?text=Þingvellir",
-                link: "https://en.wikipedia.org/wiki/Þingvellir"
-            },
-            {
-                name: "Gullfoss",
-                category: "waterfall",
-                description: "An iconic waterfall located in the canyon of the Hvítá river in southwest Iceland. The water plummets down in two stages.",
-                lat: 64.3271,
-                lng: -20.1199,
-                image: "https://placehold.co/400x300/34d399/ffffff?text=Gullfoss",
-                link: "https://en.wikipedia.org/wiki/Gullfoss"
-            },
-            {
-                name: "Geysir Geothermal Area",
-                category: "geothermal",
-                description: "Home to the highly active Strokkur geyser, which erupts every 5-10 minutes, and the eponymous, but largely dormant, Geysir.",
-                lat: 64.3142,
-                lng: -20.3006,
-                image: "https://placehold.co/400x300/f59e0b/ffffff?text=Geysir",
-                link: "https://en.wikipedia.org/wiki/Geysir"
-            },
-            {
-                name: "Seljalandsfoss",
-                category: "waterfall",
-                description: "A breathtaking waterfall that you can walk behind, offering a unique perspective. It drops 60 meters over the cliffs of the former coastline.",
-                lat: 63.6156,
-                lng: -19.9886,
-                image: "https://placehold.co/400x300/3b82f6/ffffff?text=Seljalandsfoss",
-                link: "https://en.wikipedia.org/wiki/Seljalandsfoss"
-            },
-            {
-                name: "Skógafoss",
-                category: "waterfall",
-                description: "One of the biggest waterfalls in the country with a width of 25 meters and a drop of 60 meters. A staircase leads to an observation platform.",
-                lat: 63.5321,
-                lng: -19.5114,
-                image: "https://placehold.co/400x300/14b8a6/ffffff?text=Skógafoss",
-                link: "https://en.wikipedia.org/wiki/Skógafoss"
-            },
-            {
-                name: "Reynisfjara Black Sand Beach",
-                category: "landmark",
-                description: "World-famous black-sand beach found on the South Coast of Iceland, with its stunning basalt columns and powerful Atlantic waves.",
-                lat: 63.4043,
-                lng: -19.0436,
-                image: "https://placehold.co/400x300/1f2937/ffffff?text=Reynisfjara",
-                link: "https://en.wikipedia.org/wiki/Reynisfjara"
-            },
-            {
-                name: "Vík í Mýrdal",
-                category: "town",
-                description: "A remote seafront village in south Iceland. It sits in the shadow of the Mýrdalsjökull glacier, which covers the Katla volcano.",
-                lat: 63.4194,
-                lng: -19.0064,
-                image: "https://placehold.co/400x300/ef4444/ffffff?text=Vík",
-                link: "https://en.wikipedia.org/wiki/Vík_í_Mýrdal"
-            },
-            {
-                name: "Jökulsárlón Glacier Lagoon",
-                category: "landmark",
-                description: "A large glacial lake in southeast Iceland, on the edge of Vatnajökull National Park. It's filled with icebergs calving from the Breiðamerkurjökull glacier.",
-                lat: 64.0484,
-                lng: -16.1795,
-                image: "https://placehold.co/400x300/0ea5e9/ffffff?text=Jökulsárlón",
-                link: "https://en.wikipedia.org/wiki/Jökulsárlón"
-            },
-            {
-                name: "Egilsstaðir",
-                category: "town",
-                description: "A town in east Iceland on the banks of the Lagarfljót river. It is the largest settlement of the Eastfjords.",
-                lat: 65.2669,
-                lng: -14.3948,
-                image: "https://placehold.co/400x300/8b5cf6/ffffff?text=Egilsstaðir",
-                link: "https://en.wikipedia.org/wiki/Egilsstaðir"
-            },
-             {
-                name: "Mývatn",
-                category: "geothermal",
-                description: "A shallow lake situated in an area of active volcanism in the north of Iceland, known for its rich fauna of waterbirds.",
-                lat: 65.6425,
-                lng: -16.9929,
-                image: "https://placehold.co/400x300/f97316/ffffff?text=Mývatn",
-                link: "https://en.wikipedia.org/wiki/Mývatn"
-            },
-            {
-                name: "Goðafoss",
-                category: "waterfall",
-                description: "The 'Waterfall of the Gods,' located in the Bárðardalur district of North-Central Iceland at the beginning of the Sprengisandur highland road.",
-                lat: 65.6828,
-                lng: -17.5503,
-                image: "https://placehold.co/400x300/06b6d4/ffffff?text=Goðafoss",
-                link: "https://en.wikipedia.org/wiki/Goðafoss"
-            },
-            {
-                name: "Akureyri",
-                category: "town",
-                description: "Iceland's 'Capital of the North,' it is an important port and fishing centre. The town is located on the west side of the fjord Eyjafjörður.",
-                lat: 65.6825,
-                lng: -18.0908,
-                image: "https://placehold.co/400x300/d946ef/ffffff?text=Akureyri",
-                link: "https://en.wikipedia.org/wiki/Akureyri"
-            },
-            {
-                name: "Reykjavík",
-                category: "town",
-                description: "The capital and largest city of Iceland. It is located in southwestern Iceland, on the southern shore of Faxaflói bay.",
-                lat: 64.1466,
-                lng: -21.9426,
-                image: "https://placehold.co/400x300/ec4899/ffffff?text=Reykjavík",
-                link: "https://en.wikipedia.org/wiki/Reykjavík"
-            }
-        ];
-        
-        // Ring Road Coordinates (a simplified path for visualization)
-        const ringRoadCoords = [
-            [64.1466, -21.9426], [63.973, -21.205], [63.6156, -19.9886], [63.4194, -19.0064], 
-            [63.965, -17.985], [64.0484, -16.1795], [64.258, -15.209], [65.2669, -14.3948], 
-            [65.6425, -16.9929], [65.6828, -17.5503], [65.6825, -18.0908], [65.08, -20.8], 
-            [64.896, -22.5], [64.1466, -21.9426]
-        ];
-
-        // --- MAP INITIALIZATION ---
-        const map = L.map('map').setView([64.9631, -19.0208], 6);
-
-        // Using a visually appealing base map from CartoDB
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(map);
-
-        // --- ROUTE & MARKERS ---
-        // Draw the Ring Road
-        const ringRoad = L.polyline(ringRoadCoords, { color: 'rgba(211, 85, 85, 0.8)', weight: 4 }).addTo(map);
-        map.fitBounds(ringRoad.getBounds().pad(0.2));
-
-        // Custom Icon definitions
-        const createSvgIcon = (svg) => {
-            return L.divIcon({
-                html: svg,
-                className: 'custom-div-icon',
-                iconSize: [36, 36],
-                iconAnchor: [18, 36],
-                popupAnchor: [0, -36]
-            });
-        };
-
-        const icons = {
-            waterfall: createSvgIcon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#268BD2" width="36px" height="36px"><path d="M12 0C7.58 0 4 3.58 4 8c0 4.42 8 16 8 16s8-11.58 8-16c0-4.42-3.58-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/><path d="M12 6l-3 4h2v4h2v-4h2z"/></svg>`),
-            geothermal: createSvgIcon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#D33682" width="36px" height="36px"><path d="M12 0C7.58 0 4 3.58 4 8c0 4.42 8 16 8 16s8-11.58 8-16c0-4.42-3.58-8-8-8zm-1 14H9v-2h2v2zm2-2h-2V8h2v4zm2 2h-2v-2h2v2z"/></svg>`),
-            town: createSvgIcon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#859900" width="36px" height="36px"><path d="M12 0C7.58 0 4 3.58 4 8c0 4.42 8 16 8 16s8-11.58 8-16c0-4.42-3.58-8-8-8zm-2 13h-2v-2h2v2zm0-3h-2V8h2v2zm4 3h-2v-2h2v2zm0-3h-2V8h2v2zm2 3h-2v-2h2v2z"/></svg>`),
-            landmark: createSvgIcon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#CB4B16" width="36px" height="36px"><path d="M12 0C7.58 0 4 3.58 4 8c0 4.42 8 16 8 16s8-11.58 8-16c0-4.42-3.58-8-8-8zm-1.5 13L9 10.5l1.5-1.5L12 10.5l1.5-1.5L15 10.5 13.5 12l1.5 1.5-1.5 1.5-1.5-1.5-1.5 1.5z"/></svg>`),
-            park: createSvgIcon(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2AA198" width="36px" height="36px"><path d="M12 0C7.58 0 4 3.58 4 8c0 4.42 8 16 8 16s8-11.58 8-16c0-4.42-3.58-8-8-8zm-2 14l-4-4 1.41-1.41L10 11.17l4.59-4.58L16 8l-6 6z"/></svg>`)
-        };
-
-        const sidebar = document.getElementById('poi-sidebar');
-        const poiContent = document.getElementById('poi-content');
-
-        // Add markers for each POI
-        pointsOfInterest.forEach(poi => {
-            const marker = L.marker([poi.lat, poi.lng], { icon: icons[poi.category] || icons.landmark }).addTo(map);
-            
-            marker.bindPopup(`<b>${poi.name}</b>`);
-
-            marker.on('mouseover', function (e) {
-                this.openPopup();
-            });
-            marker.on('mouseout', function (e) {
-                this.closePopup();
-            });
-
-            marker.on('click', () => {
-                updateSidebar(poi);
-                if (window.innerWidth < 768) {
-                    sidebar.classList.remove('-translate-x-full');
-                }
-            });
-        });
-
-        // --- UI INTERACTIVITY ---
-        function updateSidebar(poi) {
-            poiContent.innerHTML = `
-                <h2 class="text-4xl font-bold mb-4 text-pastel-dark-slate">${poi.name}</h2>
-                <img src="${poi.image}" alt="${poi.name}" class="w-full h-48 object-cover rounded-lg shadow-md mb-6" onerror="this.onerror=null;this.src='https://placehold.co/400x300/cccccc/ffffff?text=Image+Not+Found';">
-                <p class="text-pastel-light-slate mb-6">${poi.description}</p>
-                <a href="${poi.link}" target="_blank" rel="noopener noreferrer" class="block w-full bg-pastel-blue text-white font-semibold text-center py-3 rounded-lg hover:bg-pastel-cyan transition-colors hover-effect">
-                    Learn More <i class="fas fa-external-link-alt ml-2"></i>
-                </a>
-            `;
-        }
-        
-        // Mobile sidebar toggle
-        const menuButton = document.getElementById('menu-button');
-        const closeSidebarButton = document.getElementById('close-sidebar');
-
-        menuButton.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-        });
-
-        closeSidebarButton.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-        });
-        
-        // User location functionality
-        const userLocationButton = document.getElementById('user-location-button');
-        let userMarker;
-        let userAccuracyCircle;
-
-        userLocationButton.addEventListener('click', () => {
-            map.locate({setView: true, maxZoom: 13, watch: false});
-        });
-
-        map.on('locationfound', function(e) {
-            const radius = e.accuracy / 2;
-
-            if (userMarker) {
-                map.removeLayer(userMarker);
-                map.removeLayer(userAccuracyCircle);
-            }
-
-            userMarker = L.marker(e.latlng).addTo(map)
-                .bindPopup(`You are within ${radius.toFixed(0)} meters from this point`).openPopup();
-            
-            userAccuracyCircle = L.circle(e.latlng, radius).addTo(map);
-        });
-
-        map.on('locationerror', function(e) {
-            alert(e.message);
-        });
-
-        // Hide loading overlay when the page is fully loaded
-        window.addEventListener('load', () => {
-            const loadingOverlay = document.getElementById('loading-overlay');
-            loadingOverlay.style.opacity = '0';
-            setTimeout(() => {
-                loadingOverlay.style.display = 'none';
-            }, 500);
-        });
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
 
