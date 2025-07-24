@@ -6,7 +6,7 @@ const pointsOfInterest = [
         description: "Stand at the precipice of two continents, where the earth splits to reveal its raw, tectonic soul. This is Þingvellir, a valley echoing with the footfalls of Viking chieftains and the deep groan of shifting worlds. Feel the ancient energy in the air, a place of profound decisions and geological marvel.",
         lat: 64.2558,
         lng: -21.1301,
-        image: "https://images.unsplash.com/photo-1553528431-57359b7b23a3?q=80&w=2070&auto=format&fit=crop",
+image: "https://images.unsplash.com/photo-1553528431-57359b7b23a3?q=80&w=800&auto=format&fit=crop",
         link: "https://en.wikipedia.org/wiki/Þingvellir"
     },
     {
