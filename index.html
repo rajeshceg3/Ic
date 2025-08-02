@@ -135,7 +135,7 @@
     <div class="flex flex-col md:flex-row h-screen">
         <!-- Sidebar for POI details -->
         <div id="poi-sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-pastel-mint shadow-lg p-6 overflow-y-auto transition-transform duration-300 ease-in-out transform -translate-x-full md:translate-x-0 z-20 leading-relaxed">
-            <button id="close-sidebar" class="md:hidden absolute top-4 right-4 text-pastel-dark-slate hover:text-pastel-cyan">
+            <button id="close-sidebar" class="md:hidden absolute top-4 right-4 text-pastel-dark-slate hover:text-pastel-cyan" aria-label="Close sidebar">
                 <i class="fas fa-times fa-lg"></i>
             </button>
             <div id="poi-content">
@@ -155,10 +155,10 @@
         <!-- Main Map Area -->
         <div class="w-full md:w-3/4 lg:w-4/5 relative">
             <div id="map"></div>
-             <button id="menu-button" class="md:hidden absolute top-4 left-4 bg-pastel-mint p-3 rounded-full shadow-md z-30 hover-effect">
+             <button id="menu-button" class="md:hidden absolute top-4 left-4 bg-pastel-mint p-3 rounded-full shadow-md z-30 hover-effect" aria-label="Open sidebar">
                 <i class="fas fa-bars fa-lg text-pastel-dark-slate"></i>
             </button>
-             <button id="user-location-button" class="absolute bottom-5 right-5 bg-pastel-mint p-3 rounded-full shadow-lg z-30 hover:bg-pastel-cream transition-colors hover-effect">
+             <button id="user-location-button" class="absolute bottom-5 right-5 bg-pastel-mint p-3 rounded-full shadow-lg z-30 hover:bg-pastel-cream transition-colors hover-effect" aria-label="Get my location">
                 <i class="fas fa-location-arrow fa-lg text-pastel-blue"></i>
             </button>
         </div>
