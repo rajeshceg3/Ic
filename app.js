@@ -39,14 +39,15 @@ function createInitialSidebarContent() {
         { label: 'Suggested Direction:', value: 'Counter-clockwise (South coast first)' }
     ];
 
-    items.forEach(item => {
+    const listItems = items.map(item => {
         const li = document.createElement('li');
         const strong = document.createElement('strong');
         strong.textContent = item.label;
         li.appendChild(strong);
         li.appendChild(document.createTextNode(` ${item.value}`));
-        ul.appendChild(li);
+        return li;
     });
+    ul.append(...listItems);
 
     div.appendChild(subHeading);
     div.appendChild(ul);
