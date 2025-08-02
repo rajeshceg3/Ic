@@ -110,11 +110,7 @@ function updateSidebar(poi) {
         link.appendChild(linkText);
         link.appendChild(icon);
 
-        poiContent.appendChild(homeButton);
-        poiContent.appendChild(heading);
-        poiContent.appendChild(image);
-        poiContent.appendChild(description);
-        poiContent.appendChild(link);
+        poiContent.append(homeButton, heading, image, description, link);
 
         poiContent.style.opacity = '1';
     }, DURATION);
