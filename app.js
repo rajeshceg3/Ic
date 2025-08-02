@@ -142,21 +142,22 @@ function initMap() {
 // --- UI ---
 function updateSidebar(poi) {
     const poiContent = document.getElementById('poi-content');
-    poiContent.classList.remove('fade-in');
+    const DURATION = 200; //ms
+    poiContent.style.transition = `opacity ${DURATION}ms ease-in-out`;
+    poiContent.style.opacity = '0';
+
 
     setTimeout(() => {
         poiContent.innerHTML = `
-            <div class="fade-in">
-                <h2 class="text-2xl font-bold mb-3 text-pastel-dark-slate">${poi.name}</h2>
-                <img src="${poi.image}" alt="${poi.name}" class="w-full h-40 object-cover rounded-lg shadow-md mb-4" onerror="this.onerror=null;this.src='https://placehold.co/400x300/cccccc/ffffff?text=Image+Not+Found';">
-                <p class="text-pastel-light-slate mb-4 text-sm">${poi.description}</p>
-                <a href="${poi.link}" target="_blank" rel="noopener noreferrer" class="block w-full bg-pastel-blue text-white font-semibold text-center py-2 rounded-lg hover:bg-pastel-cyan transition-colors hover-effect text-sm">
-                    Learn More <i class="fas fa-external-link-alt ml-1"></i>
-                </a>
-            </div>
+            <h2 class="text-2xl font-bold mb-3 text-pastel-dark-slate">${poi.name}</h2>
+            <img src="${poi.image}" alt="${poi.name}" class="w-full h-40 object-cover rounded-lg shadow-md mb-4" onerror="this.onerror=null;this.src='https://placehold.co/400x300/cccccc/ffffff?text=Image+Not+Found';">
+            <p class="text-pastel-light-slate mb-4 text-sm">${poi.description}</p>
+            <a href="${poi.link}" target="_blank" rel="noopener noreferrer" class="block w-full bg-pastel-blue text-white font-semibold text-center py-2 rounded-lg hover:bg-pastel-cyan transition-colors hover-effect text-sm">
+                Learn More <i class="fas fa-external-link-alt ml-1"></i>
+            </a>
         `;
-        poiContent.classList.add('fade-in');
-    }, 200);
+        poiContent.style.opacity = '1';
+    }, DURATION);
 }
 
 function setupUIEventListeners(map) {
@@ -258,9 +259,9 @@ function main() {
     window.addEventListener('load', () => {
         const loadingOverlay = document.getElementById('loading-overlay');
         loadingOverlay.style.opacity = '0';
-        setTimeout(() => {
+        loadingOverlay.addEventListener('transitionend', () => {
             loadingOverlay.style.display = 'none';
-        }, 500);
+        }, { once: true });
     });
 }
 
