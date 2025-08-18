@@ -2,10 +2,9 @@
 function initMap() {
     const map = L.map('map').setView([64.9631, -19.0208], 6);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
+    L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg?api_key=c8301630-e7df-4a9e-84d5-bf5e7453c864', {
+        attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 16
     }).addTo(map);
 
     return map;
@@ -16,22 +15,22 @@ function createInitialSidebarContent() {
     poiContent.innerHTML = ''; // Clear existing content
 
     const heading = document.createElement('h2');
-    heading.className = 'text-3xl font-bold mb-4 text-pastel-dark-slate';
+    heading.className = 'text-3xl font-bold mb-4 text-brand-slate';
     heading.textContent = 'The Journey Begins';
 
     const p = document.createElement('p');
-    p.className = 'text-pastel-light-slate mb-6';
+    p.className = 'text-brand-slate mb-6';
     p.textContent = 'You stand at the edge of adventure. Before you lies the Ring Road, a ribbon of asphalt looping through landscapes of myth and fire. Each marker on this map is a whisper of wonder, a story waiting to be captured through your lens. Click, and let the odyssey unfold. What will you discover?';
 
     const div = document.createElement('div');
-    div.className = 'mt-6 border-t border-pastel-light-slate pt-6';
+    div.className = 'mt-6 border-t border-gray-300 pt-6';
 
     const subHeading = document.createElement('h3');
-    subHeading.className = 'text-xl font-semibold text-pastel-dark-slate mb-3';
+    subHeading.className = 'text-xl font-semibold text-brand-slate mb-3';
     subHeading.textContent = 'Route Information';
 
     const ul = document.createElement('ul');
-    ul.className = 'mt-2 text-pastel-light-slate space-y-2';
+    ul.className = 'mt-2 text-brand-slate space-y-2';
 
     const items = [
         { label: 'Total Length:', value: '~1,332 km (828 miles)' },
@@ -74,7 +73,7 @@ function updateSidebar(poi) {
 
         const homeButton = document.createElement('button');
         homeButton.id = 'home-button';
-        homeButton.className = 'absolute top-4 left-4 text-pastel-dark-slate hover:text-pastel-cyan';
+        homeButton.className = 'absolute top-4 left-4 text-brand-slate hover:text-brand-cyan';
         homeButton.setAttribute('aria-label', 'Back to home');
         const homeIcon = document.createElement('i');
         homeIcon.className = 'fas fa-arrow-left fa-lg';
@@ -82,7 +81,7 @@ function updateSidebar(poi) {
 
         // Create and append the new elements
         const heading = document.createElement('h2');
-        heading.className = "text-2xl font-bold mb-3 text-pastel-dark-slate";
+        heading.className = "text-2xl font-bold mb-3 text-brand-slate";
         heading.textContent = poi.name;
 
         const image = document.createElement('img');
@@ -95,14 +94,14 @@ function updateSidebar(poi) {
         };
 
         const description = document.createElement('p');
-        description.className = "text-pastel-light-slate mb-4 text-sm";
+        description.className = "text-brand-slate mb-4 text-sm";
         description.textContent = poi.description;
 
         const link = document.createElement('a');
         link.href = poi.link;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        link.className = "block w-full bg-pastel-blue text-white font-semibold text-center py-2 rounded-lg hover:bg-pastel-cyan transition-colors hover-effect text-sm";
+        link.className = "block w-full bg-brand-blue text-white font-semibold text-center py-2 rounded-lg hover:bg-brand-cyan transition-colors hover-effect text-sm";
 
         const linkText = document.createTextNode("Learn More ");
         const icon = document.createElement('i');
@@ -151,10 +150,22 @@ function setupUIEventListeners(map) {
             map.removeLayer(userAccuracyCircle);
         }
 
-        userMarker = L.marker(e.latlng).addTo(map)
+        const userIcon = L.divIcon({
+            html: '<div class="user-location-pulse"></div>',
+            className: '', // important to clear default styling
+            iconSize: [24, 24],
+        });
+
+        userMarker = L.marker(e.latlng, { icon: userIcon }).addTo(map)
             .bindPopup(`You are within ${radius.toFixed(0)} meters from this point`).openPopup();
 
-        userAccuracyCircle = L.circle(e.latlng, radius).addTo(map);
+        userAccuracyCircle = L.circle(e.latlng, {
+            radius: radius,
+            color: '#268BD2',
+            fillColor: '#268BD2',
+            fillOpacity: 0.15,
+            weight: 1
+        }).addTo(map);
     });
 
     map.on('locationerror', function(e) {
@@ -167,7 +178,7 @@ function showSidebarError(message) {
     poiContent.innerHTML = ''; // Clear existing content
 
     const errorDiv = document.createElement('div');
-    errorDiv.className = 'p-4 bg-pastel-red text-white rounded-lg';
+    errorDiv.className = 'p-4 bg-brand-red text-white rounded-lg';
 
     const heading = document.createElement('h3');
     heading.className = 'font-bold';
@@ -209,11 +220,11 @@ function addMarkersToMap(map, pointsOfInterest) {
         popupElement.className = 'p-2';
 
         const heading = document.createElement('h3');
-        heading.className = 'text-lg font-bold text-pastel-dark-slate mb-1';
+        heading.className = 'text-lg font-bold text-brand-slate mb-1';
         heading.textContent = poi.name;
 
         const category = document.createElement('p');
-        category.className = 'text-sm text-pastel-light-slate';
+        category.className = 'text-sm text-brand-slate';
         category.textContent = poi.category.charAt(0).toUpperCase() + poi.category.slice(1);
 
         popupElement.appendChild(heading);
@@ -228,18 +239,21 @@ function addMarkersToMap(map, pointsOfInterest) {
             this.closePopup();
         });
 
-        marker.on('click', () => {
+        const handleMarkerInteraction = () => {
+            map.flyTo([poi.lat, poi.lng], 13, {
+                animate: true,
+                duration: 1.5
+            });
             updateSidebar(poi);
             if (window.innerWidth < 768) {
                 document.getElementById('poi-sidebar').classList.remove('-translate-x-full');
             }
-        });
+        };
+
+        marker.on('click', handleMarkerInteraction);
         marker.on('keydown', (e) => {
             if (e.originalEvent.key === 'Enter' || e.originalEvent.key === ' ') {
-                updateSidebar(poi);
-                if (window.innerWidth < 768) {
-                    document.getElementById('poi-sidebar').classList.remove('-translate-x-full');
-                }
+                handleMarkerInteraction();
             }
         });
     });
@@ -255,8 +269,15 @@ function main() {
         .then(response => response.json())
         .then(data => {
             const { pointsOfInterest, ringRoadCoords } = data;
-            const ringRoad = L.polyline(ringRoadCoords, { color: 'rgba(211, 85, 85, 0.8)', weight: 4 }).addTo(map);
+            const ringRoad = L.polyline(ringRoadCoords, { color: '#d35555', weight: 5, opacity: 0.8 });
+            ringRoad.addTo(map);
             map.fitBounds(ringRoad.getBounds().pad(0.2));
+
+            // Animate the Ring Road path
+            setTimeout(() => {
+                ringRoad.snakeIn();
+            }, 1000); // Delay to ensure map tiles are loaded
+
             addMarkersToMap(map, pointsOfInterest);
         })
         .catch(error => {
