@@ -9,12 +9,20 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet.polyline.snakeanim@0.2.0/L.Polyline.SnakeAnim.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Using Lora font from Google Fonts for a more narrative feel */
-        @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap');
         body {
-            font-family: 'Lora', serif;
-            background-color: #f4f1ea; /* A soft, paper-like background */
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Playfair Display', serif;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         #map { 
             height: 100vh; 
@@ -112,11 +120,14 @@
             theme: {
                 extend: {
                     colors: {
-                        'brand-cream': '#f4f1ea',
-                        'brand-slate': '#4a5568',
-                        'brand-blue': '#268BD2',
-                        'brand-cyan': '#2AA198',
-                        'brand-red': '#d35555',
+                        'brand-ice': '#F9FAFB',
+                        'brand-dark': '#111827',
+                        'brand-blue': '#E0F2FE',
+                        'brand-moss': '#3F6212',
+                        'brand-lava': '#9F1239',
+                        // Keep legacy colors for safety until fully migrated
+                        'brand-cream': '#F9FAFB',
+                        'brand-slate': '#111827',
                     }
                 }
             }
@@ -128,10 +139,10 @@
         <div class="spinner"></div>
     </div>
 
-    <div class="flex flex-col md:flex-row h-screen">
-        <!-- Sidebar for POI details -->
-        <div id="poi-sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-brand-cream shadow-lg p-6 overflow-y-auto transition-transform duration-300 ease-in-out transform -translate-x-full md:translate-x-0 z-20 leading-relaxed">
-            <button id="close-sidebar" class="md:hidden absolute top-4 right-4 text-brand-slate hover:text-brand-cyan" aria-label="Close sidebar">
+    <div class="relative h-screen w-full overflow-hidden">
+        <!-- Sidebar / Bottom Sheet -->
+        <div id="poi-sidebar" class="glass-panel fixed bottom-0 left-0 w-full max-h-[85vh] md:max-h-none md:absolute md:top-4 md:left-4 md:bottom-auto md:w-96 md:h-[calc(100vh-2rem)] rounded-t-2xl md:rounded-xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] md:shadow-xl z-[1000] transform transition-transform duration-300 translate-y-full md:translate-x-0 md:translate-y-0 flex flex-col p-6 overflow-y-auto">
+            <button id="close-sidebar" class="md:hidden absolute top-4 right-4 text-brand-dark hover:text-brand-moss" aria-label="Close sidebar">
                 <i class="fas fa-times fa-lg"></i>
             </button>
             <div id="poi-content">
@@ -140,12 +151,12 @@
         </div>
 
         <!-- Main Map Area -->
-        <div class="w-full md:w-3/4 lg:w-4/5 relative">
+        <div class="w-full h-full z-0 relative">
             <div id="map"></div>
-             <button id="menu-button" class="md:hidden absolute top-4 left-4 bg-white p-3 rounded-full shadow-md z-30 hover-effect" aria-label="Open sidebar">
-                <i class="fas fa-bars fa-lg text-brand-slate"></i>
+             <button id="menu-button" class="md:hidden absolute top-4 left-4 glass-panel p-3 rounded-full shadow-md z-30 text-brand-dark hover:text-brand-moss transition-colors" aria-label="Open sidebar">
+                <i class="fas fa-bars fa-lg"></i>
             </button>
-             <button id="user-location-button" class="absolute bottom-5 right-5 bg-white p-3 rounded-full shadow-lg z-30 hover:bg-gray-100 transition-colors hover-effect" aria-label="Get my location">
+             <button id="user-location-button" class="absolute bottom-24 right-4 md:bottom-8 md:right-8 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-dark hover:text-brand-moss transition-colors" aria-label="Get my location">
                 <i class="fas fa-location-arrow fa-lg text-brand-blue"></i>
             </button>
         </div>
