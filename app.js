@@ -4,6 +4,7 @@ let globalPOIs = [];
 let activeTab = 'discover'; // 'discover' or 'logbook'
 let favorites = new Set();
 let activeCategory = 'All';
+let searchTerm = '';
 
 // --- LOGIC & HELPERS ---
 function loadFavorites() {
@@ -35,13 +36,26 @@ function toggleFavorite(id) {
 }
 
 function filterPOIs() {
-    if (activeCategory === 'All') {
-        return globalPOIs;
+    let filtered = globalPOIs;
+
+    // Filter by search term
+    if (searchTerm) {
+        filtered = filtered.filter(poi =>
+            poi.name.toLowerCase().includes(searchTerm) ||
+            poi.description.toLowerCase().includes(searchTerm) ||
+            (poi.tags && poi.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
+        );
     }
-    return globalPOIs.filter(poi =>
-        (poi.tags && poi.tags.includes(activeCategory)) ||
-        poi.category === activeCategory.toLowerCase()
-    );
+
+    // Filter by category
+    if (activeCategory !== 'All') {
+        filtered = filtered.filter(poi =>
+            (poi.tags && poi.tags.includes(activeCategory)) ||
+            poi.category === activeCategory.toLowerCase()
+        );
+    }
+
+    return filtered;
 }
 
 function getUniqueTags() {
@@ -102,6 +116,29 @@ function renderSidebarTabs() {
 
     // Filter Chips (Only on Discover tab)
     if (activeTab === 'discover') {
+        // Search Input
+        const searchWrapper = document.createElement('div');
+        searchWrapper.className = 'mb-3 relative';
+
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.id = 'search-input';
+        searchInput.placeholder = 'Search locations...';
+        searchInput.className = 'w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-moss focus:ring-1 focus:ring-brand-moss transition-colors';
+        searchInput.value = searchTerm;
+
+        const searchIcon = document.createElement('i');
+        searchIcon.className = 'fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs';
+
+        searchWrapper.appendChild(searchIcon);
+        searchWrapper.appendChild(searchInput);
+        container.appendChild(searchWrapper);
+
+        searchInput.addEventListener('input', (e) => {
+            searchTerm = e.target.value.toLowerCase();
+            createInitialSidebarContent();
+        });
+
         const filterContainer = document.createElement('div');
         filterContainer.className = 'flex space-x-2 overflow-x-auto pb-2 scrollbar-hide';
 
@@ -183,6 +220,41 @@ function createInitialSidebarContent() {
         heading.className = 'text-3xl font-bold mb-4 text-brand-dark';
         heading.textContent = 'My Logbook';
         poiContent.appendChild(heading);
+
+        // Explorer Level Logic
+        const favCount = favorites.size;
+        let level = "Novice Explorer";
+        let levelIcon = "map";
+        let levelColor = "text-gray-500";
+        let nextLevelMsg = "Save 3 locations to level up!";
+
+        if (favCount >= 7) {
+            level = "Viking Legend";
+            levelIcon = "khanda"; // or crown
+            levelColor = "text-brand-lava";
+            nextLevelMsg = "You have conquered the Ring Road!";
+        } else if (favCount >= 3) {
+            level = "Seasoned Adventurer";
+            levelIcon = "hiking";
+            levelColor = "text-brand-moss";
+            nextLevelMsg = `Save ${7 - favCount} more to become a Viking Legend!`;
+        } else {
+            nextLevelMsg = `Save ${3 - favCount} more to level up!`;
+        }
+
+        const levelBadge = document.createElement('div');
+        levelBadge.className = 'bg-white rounded-lg p-4 mb-6 shadow-sm border border-gray-100 flex items-center';
+        levelBadge.innerHTML = `
+            <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mr-4 ${levelColor}">
+                <i class="fas fa-${levelIcon} fa-lg"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-brand-dark text-sm uppercase tracking-wide">Current Status</h3>
+                <p class="text-lg font-playfair font-bold ${levelColor}">${level}</p>
+                <p class="text-xs text-gray-500 mt-1">${nextLevelMsg}</p>
+            </div>
+        `;
+        poiContent.appendChild(levelBadge);
 
         if (favorites.size === 0) {
              poiContent.innerHTML += `
@@ -285,19 +357,37 @@ function updateSidebar(poi) {
 
         // Enrich content: Tips & Best Time
         const extrasDiv = document.createElement('div');
-        extrasDiv.className = 'bg-brand-blue/20 rounded-lg p-4 mb-4 text-sm';
+        extrasDiv.className = 'bg-brand-blue/20 rounded-lg p-4 mb-4 text-sm space-y-2';
+
+        if (poi.duration) {
+             const durationP = document.createElement('p');
+             durationP.innerHTML = `<strong class="text-brand-dark"><i class="fas fa-hourglass-half mr-1 text-brand-moss"></i> Duration:</strong> ${poi.duration}`;
+             extrasDiv.appendChild(durationP);
+        }
 
         if (poi.bestTime) {
             const timeP = document.createElement('p');
-            timeP.className = 'mb-2';
-            timeP.innerHTML = `<strong class="text-brand-dark"><i class="far fa-clock mr-1"></i> Best Time:</strong> ${poi.bestTime}`;
+            timeP.innerHTML = `<strong class="text-brand-dark"><i class="far fa-clock mr-1 text-brand-moss"></i> Best Time:</strong> ${poi.bestTime}`;
             extrasDiv.appendChild(timeP);
+        }
+
+        if (poi.accessibility) {
+            const accessP = document.createElement('p');
+            accessP.innerHTML = `<strong class="text-brand-dark"><i class="fas fa-universal-access mr-1 text-brand-moss"></i> Accessibility:</strong> ${poi.accessibility}`;
+            extrasDiv.appendChild(accessP);
         }
 
         if (poi.tips) {
             const tipP = document.createElement('p');
-            tipP.innerHTML = `<strong class="text-brand-dark"><i class="far fa-lightbulb mr-1"></i> Pro Tip:</strong> ${poi.tips}`;
+            tipP.innerHTML = `<strong class="text-brand-dark"><i class="far fa-lightbulb mr-1 text-brand-moss"></i> Pro Tip:</strong> ${poi.tips}`;
             extrasDiv.appendChild(tipP);
+        }
+
+        if (poi.folklore) {
+            const folkloreDiv = document.createElement('div');
+            folkloreDiv.className = 'mt-3 pt-3 border-t border-brand-blue/30';
+            folkloreDiv.innerHTML = `<p class="italic text-brand-slate"><strong class="text-brand-dark not-italic"><i class="fas fa-book-open mr-1 text-brand-lava"></i> Local Lore:</strong> "${poi.folklore}"</p>`;
+            extrasDiv.appendChild(folkloreDiv);
         }
 
         const link = document.createElement('a');
