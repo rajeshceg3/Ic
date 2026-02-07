@@ -1,121 +1,173 @@
 {
     "pointsOfInterest": [
         {
+            "id": 1,
             "name": "Þingvellir: Where Worlds Divide",
             "category": "park",
             "description": "Stand at the precipice of two continents, where the earth splits to reveal its raw, tectonic soul. This is Þingvellir, a valley echoing with the footfalls of Viking chieftains and the deep groan of shifting worlds. Feel the ancient energy in the air, a place of profound decisions and geological marvel.",
             "lat": 64.2558,
             "lng": -21.1301,
             "image": "https://images.unsplash.com/photo-1553528431-57359b7b23a3?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Þingvellir"
+            "link": "https://en.wikipedia.org/wiki/Þingvellir",
+            "tips": "Visit early morning (before 9 AM) to walk the rift valley in solitude.",
+            "bestTime": "Year-round; Autumn for colors.",
+            "tags": ["History", "Nature", "UNESCO"]
         },
         {
+            "id": 2,
             "name": "Gullfoss: The Golden Cascade",
             "category": "waterfall",
             "description": "Listen to the thunder of the 'Golden Falls' as the Hvítá river vanishes into a colossal, two-tiered chasm. On a sunny day, rainbows dance in its mist, a spectacle of raw power and ethereal light. You're not just seeing a waterfall; you're witnessing the earth swallow a river whole.",
             "lat": 64.3271,
             "lng": -20.1199,
             "image": "https://images.unsplash.com/photo-1547735395-9b6b373435a7?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Gullfoss"
+            "link": "https://en.wikipedia.org/wiki/Gullfoss",
+            "tips": "Wear waterproof clothing; the mist is soaking.",
+            "bestTime": "Summer for access to lower platform.",
+            "tags": ["Waterfall", "Photography", "Golden Circle"]
         },
         {
+            "id": 3,
             "name": "Geysir: The Earth's Pulse",
             "category": "geothermal",
             "description": "Tread lightly on ground that breathes and bubbles. Here, the earth's fiery heart is laid bare. Wait for Strokkur, the ever-faithful geyser, to erupt in a scalding tower of water and steam. It’s a visceral reminder of the untamed energy churning just beneath your feet.",
             "lat": 64.3142,
             "lng": -20.3006,
             "image": "https://images.unsplash.com/photo-1601447296369-a1637d750623?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Geysir"
+            "link": "https://en.wikipedia.org/wiki/Geysir",
+            "tips": "Stand upwind to avoid getting drenched in sulfurous water.",
+            "bestTime": "Year-round.",
+            "tags": ["Geothermal", "Golden Circle"]
         },
         {
+            "id": 4,
             "name": "Seljalandsfoss: The Watery Veil",
             "category": "waterfall",
             "description": "This is not a waterfall you simply observe. Seljalandsfoss invites you to step behind its cascading curtain of water. From within its watery cave, the world is transformed into a shimmering, dreamlike panorama. It’s a moment of pure, unadulterated magic.",
             "lat": 63.6156,
             "lng": -19.9886,
             "image": "https://images.unsplash.com/photo-1535332372995-05d04031d23b?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Seljalandsfoss"
+            "link": "https://en.wikipedia.org/wiki/Seljalandsfoss",
+            "tips": "The path behind the falls is slippery. Good boots are essential.",
+            "bestTime": "Late evening for sunset behind the water.",
+            "tags": ["Waterfall", "Hiking", "Photography"]
         },
         {
+            "id": 5,
             "name": "Skógafoss: The River's End",
             "category": "waterfall",
             "description": "A perfect, roaring rectangle of water, Skógafoss is the final, dramatic flourish of the Skógá River. Climb the steep staircase to its summit and gaze down at the sheer, unbridled power. Legend whispers of a Viking's treasure hidden in the cave behind the falls—what will you find?",
             "lat": 63.5321,
             "lng": -19.5114,
             "image": "https://images.unsplash.com/photo-1574496424165-4f738914b1c7?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Skógafoss"
+            "link": "https://en.wikipedia.org/wiki/Skógafoss",
+            "tips": "Climb the 500+ steps for a view from the top.",
+            "bestTime": "Sunny days for guaranteed rainbows.",
+            "tags": ["Waterfall", "Hiking", "Mythology"]
         },
         {
+            "id": 6,
             "name": "Reynisfjara: The Obsidian Shore",
             "category": "landmark",
             "description": "Step onto a beach of polished black sand, where the Atlantic roars against colossal basalt columns that rise like a church organ. These are the Reynisdrangar sea stacks, said to be petrified trolls caught by the dawn. A place of stark, dramatic beauty, it’s where the ocean shows its teeth.",
             "lat": 63.4043,
             "lng": -19.0436,
             "image": "https://images.unsplash.com/photo-1563807395249-7fb6186b5832?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Reynisfjara"
+            "link": "https://en.wikipedia.org/wiki/Reynisfjara",
+            "tips": "DANGER: Sneaker waves are deadly here. Keep a safe distance from the surf.",
+            "bestTime": "Year-round; dramatic in stormy weather.",
+            "tags": ["Beach", "Geology", "Danger"]
         },
         {
+            "id": 7,
             "name": "Vík í Mýrdal: The Coastal Sentinel",
             "category": "town",
             "description": "The southernmost village in Iceland, Vík is a sanctuary nestled between the black sand beaches and the looming presence of the Mýrdalsjökull glacier. Its iconic red-roofed church stands as a lonely guardian against the elements, a beacon of warmth in a wild landscape.",
             "lat": 63.4194,
             "lng": -19.0064,
             "image": "https://images.unsplash.com/photo-1596706692342-93d8b4e72350?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Vík_í_Mýrdal"
+            "link": "https://en.wikipedia.org/wiki/Vík_í_Mýrdal",
+            "tips": "Visit the church for a panoramic view of the village and sea.",
+            "bestTime": "Summer for puffins (nearby).",
+            "tags": ["Town", "Culture", "Shopping"]
         },
         {
+            "id": 8,
             "name": "Jökulsárlón: The Diamond Lagoon",
             "category": "landmark",
             "description": "Witness a slow, silent ballet of ancient ice. Here, colossal icebergs calve from a glacier and drift serenely in a turquoise lagoon before washing ashore on Diamond Beach. The air crackles with the sound of shifting ice, a symphony of impermanence and breathtaking beauty.",
             "lat": 64.0484,
             "lng": -16.1795,
             "image": "https://images.unsplash.com/photo-1517799538318-1986c5a89b4a?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Jökulsárlón"
+            "link": "https://en.wikipedia.org/wiki/Jökulsárlón",
+            "tips": "Don't miss the 'Diamond Beach' across the road where icebergs wash ashore.",
+            "bestTime": "Year-round; boat tours May-October.",
+            "tags": ["Glacier", "Wildlife", "Photography"]
         },
         {
+            "id": 9,
             "name": "Egilsstaðir: The Eastern Crossroads",
             "category": "town",
             "description": "After the winding fjords, Egilsstaðir appears as a calm haven on the banks of the Lagarfljót river. It’s the heart of the East, a place to rest and regroup, surrounded by forests and legends of a mythical lake worm. A perfect pause in your epic journey.",
             "lat": 65.2669,
             "lng": -14.3948,
             "image": "https://images.unsplash.com/photo-1622325350919-8e4a9a0e6b3a?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Egilsstaðir"
+            "link": "https://en.wikipedia.org/wiki/Egilsstaðir",
+            "tips": "Try to spot the Lagarfljót Wyrm (Loch Ness monster's cousin).",
+            "bestTime": "Summer for hiking nearby forests.",
+            "tags": ["Town", "Relaxation", "Forest"]
         },
         {
+            "id": 10,
             "name": "Mývatn: The Cauldron of Creation",
             "category": "geothermal",
             "description": "Enter a landscape forged in fire. Mývatn is a geothermal wonderland of bubbling mud pots, volcanic craters, and steam vents hissing from the earth. The air is thick with the smell of sulfur and the hum of creation, a testament to Iceland's volcanic soul.",
             "lat": 65.6425,
             "lng": -16.9929,
             "image": "https://images.unsplash.com/photo-1593532910110-8912918838b4?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Mývatn"
+            "link": "https://en.wikipedia.org/wiki/Mývatn",
+            "tips": "Visit the Mývatn Nature Baths for a quieter alternative to the Blue Lagoon.",
+            "bestTime": "Winter for Northern Lights; Summer for birdwatching.",
+            "tags": ["Geothermal", "Wellness", "Birdwatching"]
         },
         {
+            "id": 11,
             "name": "Goðafoss: The Waterfall of Gods",
             "category": "waterfall",
             "description": "A crescent-shaped cascade of immense power and historical weight. It was here, a millennium ago, that Iceland's law-speaker cast idols of the old Norse gods into the churning water, embracing Christianity. You can feel the echoes of that decision in the roar of the falls.",
             "lat": 65.6828,
             "lng": -17.5503,
             "image": "https://images.unsplash.com/photo-1606906173797-19274358d116?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Goðafoss"
+            "link": "https://en.wikipedia.org/wiki/Goðafoss",
+            "tips": "Both sides of the river offer great viewing platforms.",
+            "bestTime": "Year-round; magical when frozen in winter.",
+            "tags": ["Waterfall", "History", "Photography"]
         },
         {
+            "id": 12,
             "name": "Akureyri: The Northern Heart",
             "category": "town",
-            "description": "Nestled at the head of Iceland's longest fjord, Akureyri is a vibrant splash of culture and color against a backdrop of snow-capped peaks. It’s a city that beats with a warm, welcoming heart, offering a cozy respite before your final push back to the capital.",
+            "description": "Nestled at the head of Iceland's longest fjord, Akureyri is a vibrant splash of culture and color against a backdrop of snow-capped peaks. It’s the city that beats with a warm, welcoming heart, offering a cozy respite before your final push back to the capital.",
             "lat": 65.6825,
             "lng": -18.0908,
             "image": "https://images.unsplash.com/photo-1590322969192-0b8b1a8a2a5f?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Akureyri"
+            "link": "https://en.wikipedia.org/wiki/Akureyri",
+            "tips": "The traffic lights have heart-shaped red signals.",
+            "bestTime": "Winter for skiing; Summer for gardens.",
+            "tags": ["City", "Culture", "Skiing"]
         },
         {
+            "id": 13,
             "name": "Reykjavík: The Journey's End & Beginning",
             "category": "town",
             "description": "You've come full circle. The world's northernmost capital, Reykjavík is a city of vibrant art, innovative cuisine, and quirky charm, all powered by the geothermal energy you've witnessed. It's the perfect place to reflect on your journey and, perhaps, plan the next one.",
             "lat": 64.1466,
             "lng": -21.9426,
             "image": "https://images.unsplash.com/photo-1551493793-5479427d1a29?q=80&w=400&auto=format&fit=crop",
-            "link": "https://en.wikipedia.org/wiki/Reykjavík"
+            "link": "https://en.wikipedia.org/wiki/Reykjavík",
+            "tips": "Get a hot dog at Bæjarins Beztu Pylsur.",
+            "bestTime": "Year-round; vibrant nightlife on weekends.",
+            "tags": ["Capital", "Culture", "Food", "Nightlife"]
         }
     ],
     "ringRoadCoords": [
