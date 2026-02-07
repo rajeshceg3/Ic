@@ -1,6 +1,63 @@
 // --- GLOBAL STATE ---
 let map;
 let globalPOIs = [];
+let activeTab = 'discover'; // 'discover' or 'logbook'
+let favorites = new Set();
+let activeCategory = 'All';
+
+// --- LOGIC & HELPERS ---
+function loadFavorites() {
+    try {
+        const stored = localStorage.getItem('iceland_favorites');
+        if (stored) {
+            favorites = new Set(JSON.parse(stored));
+        }
+    } catch (e) {
+        console.error("Failed to load favorites", e);
+    }
+}
+
+function saveFavorites() {
+    try {
+        localStorage.setItem('iceland_favorites', JSON.stringify([...favorites]));
+    } catch (e) {
+        console.error("Failed to save favorites", e);
+    }
+}
+
+function toggleFavorite(id) {
+    if (favorites.has(id)) {
+        favorites.delete(id);
+    } else {
+        favorites.add(id);
+    }
+    saveFavorites();
+}
+
+function filterPOIs() {
+    if (activeCategory === 'All') {
+        return globalPOIs;
+    }
+    return globalPOIs.filter(poi =>
+        (poi.tags && poi.tags.includes(activeCategory)) ||
+        poi.category === activeCategory.toLowerCase()
+    );
+}
+
+function getUniqueTags() {
+    const tags = new Set(['All']);
+    globalPOIs.forEach(poi => {
+        if (poi.tags) {
+            poi.tags.forEach(tag => tags.add(tag));
+        }
+    });
+    // Custom sort to keep 'All' first
+    return Array.from(tags).sort((a, b) => {
+        if (a === 'All') return -1;
+        if (b === 'All') return 1;
+        return a.localeCompare(b);
+    });
+}
 
 // --- MAP INITIALIZATION ---
 function initMap() {
@@ -14,71 +71,144 @@ function initMap() {
     return map;
 }
 
+// --- SIDEBAR UI ---
+function renderSidebarTabs() {
+    const container = document.getElementById('sidebar-tabs');
+    if (!container) return;
+
+    container.innerHTML = '';
+    container.classList.remove('hidden');
+
+    // Tab Header
+    const tabHeader = document.createElement('div');
+    tabHeader.className = 'flex border-b border-gray-200 mb-4';
+
+    const createTab = (id, label, icon) => {
+        const btn = document.createElement('button');
+        const isActive = activeTab === id;
+        btn.className = `flex-1 py-2 text-sm font-medium transition-colors border-b-2 focus:outline-none ${isActive ? 'border-brand-moss text-brand-moss' : 'border-transparent text-gray-500 hover:text-brand-dark'}`;
+        btn.innerHTML = `<i class="fas fa-${icon} mr-2"></i>${label}`;
+        btn.onclick = () => {
+            activeTab = id;
+            renderSidebarTabs(); // Re-render tabs
+            createInitialSidebarContent(); // Re-render content
+        };
+        return btn;
+    };
+
+    tabHeader.appendChild(createTab('discover', 'Discover', 'compass'));
+    tabHeader.appendChild(createTab('logbook', 'My Logbook', 'book-open'));
+    container.appendChild(tabHeader);
+
+    // Filter Chips (Only on Discover tab)
+    if (activeTab === 'discover') {
+        const filterContainer = document.createElement('div');
+        filterContainer.className = 'flex space-x-2 overflow-x-auto pb-2 scrollbar-hide';
+
+        // Hide scrollbar style
+        const style = document.createElement('style');
+        style.textContent = '.scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }';
+        container.appendChild(style);
+
+        const tags = getUniqueTags();
+        tags.forEach(tag => {
+            const chip = document.createElement('button');
+            const isActive = activeCategory === tag;
+            chip.className = `whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium transition-colors border focus:outline-none ${isActive ? 'bg-brand-moss text-white border-brand-moss' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-moss hover:text-brand-moss'}`;
+            chip.textContent = tag;
+            chip.onclick = () => {
+                activeCategory = tag;
+                renderSidebarTabs(); // Re-render chips
+                createInitialSidebarContent(); // Re-render list
+            };
+            filterContainer.appendChild(chip);
+        });
+        container.appendChild(filterContainer);
+    }
+}
+
 function createInitialSidebarContent() {
     const poiContent = document.getElementById('poi-content');
     poiContent.innerHTML = ''; // Clear existing content
 
-    const heading = document.createElement('h2');
-    heading.className = 'text-3xl font-bold mb-4 text-brand-dark';
-    heading.textContent = 'The Journey Begins';
+    // Ensure tabs are visible
+    const tabsContainer = document.getElementById('sidebar-tabs');
+    if (tabsContainer) tabsContainer.classList.remove('hidden');
 
-    const p = document.createElement('p');
-    p.className = 'text-brand-dark mb-6 leading-relaxed';
-    p.textContent = 'You stand at the edge of adventure. Before you lies the Ring Road, a ribbon of asphalt looping through landscapes of myth and fire. Each marker on this map is a whisper of wonder, a story waiting to be captured through your lens. Click below to begin your odyssey.';
+    if (activeTab === 'discover') {
+        const heading = document.createElement('h2');
+        heading.className = 'text-3xl font-bold mb-4 text-brand-dark';
+        heading.textContent = 'The Journey Begins';
 
-    poiContent.appendChild(heading);
-    poiContent.appendChild(p);
+        const p = document.createElement('p');
+        p.className = 'text-brand-dark mb-6 leading-relaxed text-sm';
+        p.textContent = 'Explore the Ring Road. Select a category above or choose a location below.';
 
-    // Stats Section
-    const statsDiv = document.createElement('div');
-    statsDiv.className = 'mt-6 border-t border-gray-200 pt-6 mb-6';
+        poiContent.appendChild(heading);
+        poiContent.appendChild(p);
 
-    const subHeading = document.createElement('h3');
-    subHeading.className = 'text-xl font-semibold text-brand-dark mb-3';
-    subHeading.textContent = 'Route Information';
+        // Filtered List
+        const filteredPOIs = filterPOIs();
+        if (filteredPOIs.length === 0) {
+            poiContent.innerHTML += '<div class="text-center text-gray-500 mt-10 p-4 border border-dashed rounded-lg">No locations found for this category.</div>';
+            return;
+        }
 
-    const ul = document.createElement('ul');
-    ul.className = 'mt-2 text-brand-dark space-y-2 text-sm';
-
-    const items = [
-        { label: 'Total Length:', value: '~1,332 km (828 miles)' },
-        { label: 'Est. Driving Time:', value: '~16-17 hours' },
-        { label: 'Direction:', value: 'Counter-clockwise' }
-    ];
-
-    const listItems = items.map(item => {
-        const li = document.createElement('li');
-        li.innerHTML = `<strong class="font-semibold">${item.label}</strong> ${item.value}`;
-        return li;
-    });
-    ul.append(...listItems);
-
-    statsDiv.appendChild(subHeading);
-    statsDiv.appendChild(ul);
-    poiContent.appendChild(statsDiv);
-
-    // Itinerary Section
-    if (globalPOIs && globalPOIs.length > 0) {
-        const itineraryDiv = document.createElement('div');
+        const listDiv = document.createElement('div');
         const listHeader = document.createElement('h3');
         listHeader.className = 'text-xl font-semibold text-brand-dark mb-4';
-        listHeader.textContent = 'Itinerary';
-        itineraryDiv.appendChild(listHeader);
+        listHeader.textContent = activeCategory === 'All' ? 'Itinerary' : `${activeCategory} Locations`;
+        listDiv.appendChild(listHeader);
 
         const poiList = document.createElement('ul');
         poiList.className = 'space-y-2';
-        globalPOIs.forEach((poi, index) => {
+
+        filteredPOIs.forEach((poi) => {
+            const index = globalPOIs.findIndex(p => p.id === poi.id);
             const item = document.createElement('li');
             item.className = 'flex items-center p-3 rounded-lg hover:bg-brand-blue cursor-pointer transition-colors group border border-transparent hover:border-brand-blue/50';
             item.innerHTML = `
                 <span class="w-8 h-8 flex-shrink-0 rounded-full bg-brand-moss/10 text-brand-moss flex items-center justify-center mr-3 group-hover:bg-brand-moss group-hover:text-white transition-colors text-xs font-bold font-sans">${index + 1}</span>
                 <span class="text-brand-dark font-medium group-hover:text-brand-dark transition-colors text-sm">${poi.name}</span>
+                ${favorites.has(poi.id) ? '<i class="fas fa-heart text-brand-lava ml-auto text-xs"></i>' : ''}
             `;
             item.addEventListener('click', () => navigateToPOI(poi));
             poiList.appendChild(item);
         });
-        itineraryDiv.appendChild(poiList);
-        poiContent.appendChild(itineraryDiv);
+        listDiv.appendChild(poiList);
+        poiContent.appendChild(listDiv);
+
+    } else if (activeTab === 'logbook') {
+        const heading = document.createElement('h2');
+        heading.className = 'text-3xl font-bold mb-4 text-brand-dark';
+        heading.textContent = 'My Logbook';
+        poiContent.appendChild(heading);
+
+        if (favorites.size === 0) {
+             poiContent.innerHTML += `
+                <div class="text-center mt-10 text-gray-400">
+                    <i class="far fa-heart fa-3x mb-3 text-gray-300"></i>
+                    <p class="font-medium">Your logbook is empty.</p>
+                    <p class="text-xs mt-2">Heart locations to save them here.</p>
+                </div>
+             `;
+        } else {
+             const favList = globalPOIs.filter(p => favorites.has(p.id));
+             const poiList = document.createElement('ul');
+             poiList.className = 'space-y-2 mt-4';
+
+             favList.forEach((poi) => {
+                const item = document.createElement('li');
+                item.className = 'flex items-center p-3 rounded-lg hover:bg-brand-blue cursor-pointer transition-colors group border border-transparent hover:border-brand-blue/50';
+                item.innerHTML = `
+                    <span class="w-8 h-8 flex-shrink-0 rounded-full bg-brand-lava/10 text-brand-lava flex items-center justify-center mr-3 group-hover:bg-brand-lava group-hover:text-white transition-colors text-xs font-bold font-sans"><i class="fas fa-heart"></i></span>
+                    <span class="text-brand-dark font-medium group-hover:text-brand-dark transition-colors text-sm">${poi.name}</span>
+                `;
+                item.addEventListener('click', () => navigateToPOI(poi));
+                poiList.appendChild(item);
+             });
+             poiContent.appendChild(poiList);
+        }
     }
 }
 
@@ -89,6 +219,11 @@ function resetSidebar() {
 // --- UI ---
 function updateSidebar(poi) {
     const poiContent = document.getElementById('poi-content');
+    const tabsContainer = document.getElementById('sidebar-tabs');
+
+    // Hide tabs
+    if (tabsContainer) tabsContainer.classList.add('hidden');
+
     const DURATION = 200; //ms
     poiContent.style.transition = `opacity ${DURATION}ms ease-in-out`;
     poiContent.style.opacity = '0';
@@ -99,29 +234,71 @@ function updateSidebar(poi) {
 
         const homeButton = document.createElement('button');
         homeButton.id = 'home-button';
-        homeButton.className = 'absolute top-4 left-4 text-brand-slate hover:text-brand-cyan';
+        homeButton.className = 'absolute top-4 left-4 text-brand-slate hover:text-brand-moss transition-colors z-10';
         homeButton.setAttribute('aria-label', 'Back to home');
         const homeIcon = document.createElement('i');
         homeIcon.className = 'fas fa-arrow-left fa-lg';
         homeButton.appendChild(homeIcon);
 
-        // Create and append the new elements
+        // Heart Button
+        const heartBtn = document.createElement('button');
+        const isFav = favorites.has(poi.id);
+        heartBtn.className = `absolute top-4 right-4 w-10 h-10 rounded-full glass-panel flex items-center justify-center transition-all z-10 hover:shadow-lg ${isFav ? 'text-brand-lava' : 'text-gray-400 hover:text-brand-lava'}`;
+        heartBtn.innerHTML = `<i class="${isFav ? 'fas' : 'far'} fa-heart fa-lg"></i>`;
+        heartBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleFavorite(poi.id);
+            const newIsFav = favorites.has(poi.id);
+            heartBtn.innerHTML = `<i class="${newIsFav ? 'fas' : 'far'} fa-heart fa-lg"></i>`;
+            heartBtn.className = `absolute top-4 right-4 w-10 h-10 rounded-full glass-panel flex items-center justify-center transition-all z-10 hover:shadow-lg ${newIsFav ? 'text-brand-lava' : 'text-gray-400 hover:text-brand-lava'}`;
+        };
+
+        // ... Content creation ...
         const heading = document.createElement('h2');
-        heading.className = "text-2xl font-bold mb-3 text-brand-slate";
+        heading.className = "text-2xl font-bold mb-3 text-brand-slate mt-10"; // Added margin top for buttons
         heading.textContent = poi.name;
+
+        // Tags
+        const tagsDiv = document.createElement('div');
+        tagsDiv.className = 'flex flex-wrap gap-2 mb-4';
+        if (poi.tags) {
+            poi.tags.forEach(tag => {
+                const tagSpan = document.createElement('span');
+                tagSpan.className = 'px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium';
+                tagSpan.textContent = tag;
+                tagsDiv.appendChild(tagSpan);
+            });
+        }
 
         const image = document.createElement('img');
         image.src = poi.image;
         image.alt = poi.name;
-        image.className = "w-full h-40 object-cover rounded-lg shadow-md mb-4";
+        image.className = "w-full h-48 object-cover rounded-lg shadow-md mb-4"; // Taller image
         image.onerror = function() {
             this.onerror=null;
             this.src='https://placehold.co/400x300/cccccc/ffffff?text=Image+Not+Found';
         };
 
         const description = document.createElement('p');
-        description.className = "text-brand-slate mb-4 text-sm";
+        description.className = "text-brand-slate mb-4 text-sm leading-relaxed";
         description.textContent = poi.description;
+
+        // Enrich content: Tips & Best Time
+        const extrasDiv = document.createElement('div');
+        extrasDiv.className = 'bg-brand-blue/20 rounded-lg p-4 mb-4 text-sm';
+
+        if (poi.bestTime) {
+            const timeP = document.createElement('p');
+            timeP.className = 'mb-2';
+            timeP.innerHTML = `<strong class="text-brand-dark"><i class="far fa-clock mr-1"></i> Best Time:</strong> ${poi.bestTime}`;
+            extrasDiv.appendChild(timeP);
+        }
+
+        if (poi.tips) {
+            const tipP = document.createElement('p');
+            tipP.innerHTML = `<strong class="text-brand-dark"><i class="far fa-lightbulb mr-1"></i> Pro Tip:</strong> ${poi.tips}`;
+            extrasDiv.appendChild(tipP);
+        }
 
         const link = document.createElement('a');
         link.href = poi.link;
@@ -139,7 +316,7 @@ function updateSidebar(poi) {
         const navDiv = document.createElement('div');
         navDiv.className = 'flex justify-between items-center pt-4 border-t border-gray-200';
 
-        const index = globalPOIs.findIndex(p => p.name === poi.name);
+        const index = globalPOIs.findIndex(p => p.id === poi.id);
 
         if (index > 0) {
             const prevBtn = document.createElement('button');
@@ -159,7 +336,7 @@ function updateSidebar(poi) {
             navDiv.appendChild(nextBtn);
         }
 
-        poiContent.append(homeButton, heading, image, description, link, navDiv);
+        poiContent.append(homeButton, heartBtn, heading, tagsDiv, image, description, extrasDiv, link, navDiv);
 
         poiContent.style.opacity = '1';
     }, DURATION);
@@ -317,8 +494,10 @@ function addMarkersToMap(map, pointsOfInterest) {
 
 // --- MAIN APP ---
 function main() {
+    loadFavorites();
     const map = initMap();
     setupUIEventListeners(map);
+    renderSidebarTabs();
     createInitialSidebarContent();
 
     fetch('data.json')
@@ -336,6 +515,9 @@ function main() {
             }, 1000); // Delay to ensure map tiles are loaded
 
             addMarkersToMap(map, pointsOfInterest);
+
+            // Re-render UI with data
+            renderSidebarTabs();
             createInitialSidebarContent();
         })
         .catch(error => {
