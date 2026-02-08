@@ -193,25 +193,40 @@ function createInitialSidebarContent() {
 
         const listDiv = document.createElement('div');
         const listHeader = document.createElement('h3');
-        listHeader.className = 'text-xl font-semibold text-brand-dark mb-4';
+        listHeader.className = 'text-xl font-semibold text-brand-deep mb-4 font-serif';
         listHeader.textContent = activeCategory === 'All' ? 'Itinerary' : `${activeCategory} Locations`;
         listDiv.appendChild(listHeader);
 
         const poiList = document.createElement('ul');
-        poiList.className = 'space-y-2';
+        poiList.className = 'space-y-3 pb-20 md:pb-0'; // Add padding for bottom sheet safe area
 
         filteredPOIs.forEach((poi, loopIndex) => {
             const index = globalPOIs.findIndex(p => p.id === poi.id);
             const item = document.createElement('li');
-            item.className = 'flex items-center p-3 rounded-lg hover:bg-brand-blue/50 cursor-pointer transition-all duration-300 group border border-transparent hover:border-brand-blue/50 hover:shadow-sm transform hover:scale-[1.02]';
-            // Staggered Animation
+            item.className = 'flex items-start bg-white rounded-xl shadow-sm border border-brand-mist hover:shadow-md hover:border-brand-moss/30 cursor-pointer transition-all duration-300 group overflow-hidden hover:-translate-y-0.5';
             item.style.opacity = '0';
             item.style.animation = `fadeInUp 0.5s ease-out forwards ${loopIndex * 0.05}s`;
 
+            const imgUrl = poi.image ? poi.image : 'https://placehold.co/400x300/e2e8f0/64748b?text=Iceland';
+
             item.innerHTML = `
-                <span class="w-8 h-8 flex-shrink-0 rounded-full bg-brand-moss/10 text-brand-moss flex items-center justify-center mr-3 group-hover:bg-brand-moss group-hover:text-white transition-colors text-xs font-bold font-sans shadow-sm">${index + 1}</span>
-                <span class="text-brand-dark font-medium group-hover:text-brand-moss transition-colors text-sm">${poi.name}</span>
-                ${favorites.has(poi.id) ? '<i class="fas fa-heart text-brand-lava ml-auto text-xs drop-shadow-sm"></i>' : ''}
+                <div class="relative w-24 h-24 shrink-0 m-2">
+                    <img src="${imgUrl}" alt="${poi.name}" class="w-full h-full object-cover rounded-lg bg-gray-100" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e2e8f0/64748b?text=Iceland';">
+                    <div class="absolute top-1 left-1 bg-brand-deep/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm shadow-sm">${index + 1}</div>
+                </div>
+                <div class="flex-1 p-3 pl-1 min-w-0 flex flex-col justify-center h-28">
+                    <div class="flex justify-between items-start mb-1">
+                        <h4 class="font-bold text-brand-deep text-sm leading-tight group-hover:text-brand-moss transition-colors line-clamp-2">${poi.name}</h4>
+                        ${favorites.has(poi.id) ? '<i class="fas fa-heart text-brand-lava text-xs ml-2 mt-0.5 animate-pulse"></i>' : ''}
+                    </div>
+                    <div class="flex items-center mb-1">
+                         <span class="text-[10px] font-bold tracking-wider uppercase text-brand-moss bg-brand-moss/10 px-2 py-0.5 rounded-full">${poi.category}</span>
+                    </div>
+                    <p class="text-xs text-brand-stone line-clamp-2 leading-relaxed">${poi.description}</p>
+                </div>
+                <div class="flex items-center justify-center h-28 w-8 text-brand-stone/30 group-hover:text-brand-moss/50 transition-colors">
+                    <i class="fas fa-chevron-right text-sm"></i>
+                </div>
             `;
             item.addEventListener('click', () => navigateToPOI(poi));
             poiList.appendChild(item);
@@ -221,7 +236,7 @@ function createInitialSidebarContent() {
 
     } else if (activeTab === 'logbook') {
         const heading = document.createElement('h2');
-        heading.className = 'text-3xl font-bold mb-4 text-brand-dark';
+        heading.className = 'text-3xl font-bold mb-4 text-brand-deep font-serif';
         heading.textContent = 'My Logbook';
         poiContent.appendChild(heading);
 
@@ -229,12 +244,12 @@ function createInitialSidebarContent() {
         const favCount = favorites.size;
         let level = "Novice Explorer";
         let levelIcon = "map";
-        let levelColor = "text-gray-500";
+        let levelColor = "text-brand-stone";
         let nextLevelMsg = "Save 3 locations to level up!";
 
         if (favCount >= 7) {
             level = "Viking Legend";
-            levelIcon = "khanda"; // or crown
+            levelIcon = "khanda";
             levelColor = "text-brand-lava";
             nextLevelMsg = "You have conquered the Ring Road!";
         } else if (favCount >= 3) {
@@ -247,41 +262,54 @@ function createInitialSidebarContent() {
         }
 
         const levelBadge = document.createElement('div');
-        levelBadge.className = 'bg-white rounded-lg p-4 mb-6 shadow-sm border border-gray-100 flex items-center';
+        levelBadge.className = 'bg-white rounded-xl p-5 mb-6 shadow-sm border border-brand-mist flex items-center transform transition-all hover:shadow-md';
         levelBadge.innerHTML = `
-            <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mr-4 ${levelColor}">
-                <i class="fas fa-${levelIcon} fa-lg"></i>
+            <div class="w-14 h-14 rounded-full bg-brand-ice flex items-center justify-center mr-4 ${levelColor} shadow-inner">
+                <i class="fas fa-${levelIcon} fa-xl"></i>
             </div>
             <div>
-                <h3 class="font-bold text-brand-dark text-sm uppercase tracking-wide">Current Status</h3>
-                <p class="text-lg font-playfair font-bold ${levelColor}">${level}</p>
-                <p class="text-xs text-gray-500 mt-1">${nextLevelMsg}</p>
+                <h3 class="font-bold text-brand-deep text-xs uppercase tracking-wide opacity-60">Current Status</h3>
+                <p class="text-xl font-serif font-bold ${levelColor} mb-1">${level}</p>
+                <div class="w-full bg-gray-100 rounded-full h-1.5 mb-1">
+                    <div class="bg-current h-1.5 rounded-full opacity-50 ${levelColor}" style="width: ${Math.min((favCount / 7) * 100, 100)}%"></div>
+                </div>
+                <p class="text-[10px] text-brand-stone">${nextLevelMsg}</p>
             </div>
         `;
         poiContent.appendChild(levelBadge);
 
         if (favorites.size === 0) {
              poiContent.innerHTML += `
-                <div class="text-center mt-10 text-gray-400">
-                    <i class="far fa-heart fa-3x mb-3 text-gray-300"></i>
-                    <p class="font-medium">Your logbook is empty.</p>
-                    <p class="text-xs mt-2">Heart locations to save them here.</p>
+                <div class="flex flex-col items-center justify-center mt-10 text-brand-stone/50 py-10 border-2 border-dashed border-brand-mist rounded-xl">
+                    <i class="far fa-heart fa-3x mb-4 opacity-50"></i>
+                    <p class="font-medium text-brand-deep">Your logbook is empty.</p>
+                    <p class="text-xs mt-1">Heart locations to save them here.</p>
                 </div>
              `;
         } else {
              const favList = globalPOIs.filter(p => favorites.has(p.id));
              const poiList = document.createElement('ul');
-             poiList.className = 'space-y-2 mt-4';
+             poiList.className = 'space-y-3 pb-20 md:pb-0';
 
              favList.forEach((poi, loopIndex) => {
                 const item = document.createElement('li');
-                item.className = 'flex items-center p-3 rounded-lg hover:bg-brand-blue/50 cursor-pointer transition-all duration-300 group border border-transparent hover:border-brand-blue/50 hover:shadow-sm transform hover:scale-[1.02]';
+                item.className = 'flex items-center bg-white p-2 rounded-xl shadow-sm border border-brand-mist hover:shadow-md cursor-pointer transition-all duration-300 group hover:-translate-y-0.5';
                 item.style.opacity = '0';
                 item.style.animation = `fadeInUp 0.5s ease-out forwards ${loopIndex * 0.05}s`;
 
                 item.innerHTML = `
-                    <span class="w-8 h-8 flex-shrink-0 rounded-full bg-brand-lava/10 text-brand-lava flex items-center justify-center mr-3 group-hover:bg-brand-lava group-hover:text-white transition-colors text-xs font-bold font-sans shadow-sm"><i class="fas fa-heart"></i></span>
-                    <span class="text-brand-dark font-medium group-hover:text-brand-moss transition-colors text-sm">${poi.name}</span>
+                    <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden relative mr-3 bg-gray-100">
+                         <img src="${poi.image}" class="w-full h-full object-cover">
+                         <div class="absolute inset-0 bg-black/10"></div>
+                         <div class="absolute inset-0 flex items-center justify-center text-white"><i class="fas fa-heart text-sm drop-shadow-md"></i></div>
+                    </div>
+                    <div>
+                        <span class="block text-brand-deep font-bold text-sm group-hover:text-brand-moss transition-colors line-clamp-1">${poi.name}</span>
+                        <span class="text-xs text-brand-stone capitalize">${poi.category}</span>
+                    </div>
+                    <div class="ml-auto pr-2 text-brand-stone/30 group-hover:text-brand-moss/50">
+                        <i class="fas fa-chevron-right text-sm"></i>
+                    </div>
                 `;
                 item.addEventListener('click', () => navigateToPOI(poi));
                 poiList.appendChild(item);
@@ -333,160 +361,141 @@ function updateSidebar(poi) {
         // Clear existing content
         poiContent.innerHTML = '';
 
-        const homeButton = document.createElement('button');
-        homeButton.id = 'home-button';
-        homeButton.className = 'absolute top-4 left-4 text-brand-slate hover:text-brand-moss transition-colors z-10';
-        homeButton.setAttribute('aria-label', 'Back to home');
-        const homeIcon = document.createElement('i');
-        homeIcon.className = 'fas fa-arrow-left fa-lg';
-        homeButton.appendChild(homeIcon);
-
-        // Heart Button
-        const heartBtn = document.createElement('button');
-        const isFav = favorites.has(poi.id);
-        heartBtn.className = `absolute top-4 right-4 w-10 h-10 rounded-full glass-panel flex items-center justify-center transition-all z-10 hover:shadow-lg ${isFav ? 'text-brand-lava' : 'text-gray-400 hover:text-brand-lava'}`;
-        heartBtn.innerHTML = `<i class="${isFav ? 'fas' : 'far'} fa-heart fa-lg"></i>`;
-        heartBtn.onclick = (e) => {
-            e.stopPropagation();
-            toggleFavorite(poi.id);
-            const newIsFav = favorites.has(poi.id);
-            heartBtn.innerHTML = `<i class="${newIsFav ? 'fas' : 'far'} fa-heart fa-lg"></i>`;
-            heartBtn.className = `absolute top-4 right-4 w-10 h-10 rounded-full glass-panel flex items-center justify-center transition-all z-10 hover:shadow-lg ${newIsFav ? 'text-brand-lava' : 'text-gray-400 hover:text-brand-lava'}`;
-        };
-
-        // ... Content creation ...
-        // Hero Image Container
+        // --- Hero Section ---
         const heroContainer = document.createElement('div');
-        heroContainer.className = "relative w-[calc(100%+3rem)] -ml-6 -mt-2 md:-mt-6 mb-6 group overflow-hidden rounded-t-none md:rounded-t-xl shrink-0"; // Negative margins to break out of padding
+        heroContainer.className = "relative w-[calc(100%+3rem)] -ml-6 -mt-2 md:-mt-6 h-72 shrink-0 group overflow-hidden";
 
         const image = document.createElement('img');
         image.src = poi.image;
         image.alt = poi.name;
-        image.className = "w-full h-56 object-cover shadow-sm transition-transform duration-700 group-hover:scale-105";
+        image.className = "w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105";
         image.onerror = function() {
             this.onerror=null;
-            this.src='https://placehold.co/400x300/cccccc/ffffff?text=Image+Not+Found';
+            this.src='https://placehold.co/400x300/e2e8f0/64748b?text=Iceland';
         };
 
-        // Gradient overlay
         const gradient = document.createElement('div');
-        gradient.className = "absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none";
+        gradient.className = "absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none";
 
-        heroContainer.appendChild(image);
-        heroContainer.appendChild(gradient);
+        // Back Button
+        const homeButton = document.createElement('button');
+        homeButton.id = 'home-button'; // Keep ID for event delegation
+        homeButton.className = 'absolute top-4 left-4 z-20 text-white hover:text-brand-blue transition-colors p-2 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full w-10 h-10 flex items-center justify-center';
+        homeButton.setAttribute('aria-label', 'Back to home');
+        homeButton.innerHTML = '<i class="fas fa-arrow-left"></i>';
+        homeButton.onclick = resetSidebar;
 
-        // Header Section
-        const headerDiv = document.createElement('div');
-        headerDiv.className = "mb-4";
+        // Heart FAB
+        const isFav = favorites.has(poi.id);
+        const heartBtn = document.createElement('button');
+        heartBtn.className = `absolute -bottom-6 right-6 z-30 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${isFav ? 'bg-brand-lava text-white' : 'bg-white text-brand-stone hover:text-brand-lava'}`;
+        heartBtn.innerHTML = `<i class="${isFav ? 'fas' : 'far'} fa-heart fa-xl ${isFav ? 'animate-bounce' : ''}"></i>`;
+        heartBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleFavorite(poi.id);
+            const newIsFav = favorites.has(poi.id);
+            heartBtn.className = `absolute -bottom-6 right-6 z-30 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${newIsFav ? 'bg-brand-lava text-white' : 'bg-white text-brand-stone hover:text-brand-lava'}`;
+            heartBtn.innerHTML = `<i class="${newIsFav ? 'fas' : 'far'} fa-heart fa-xl ${newIsFav ? 'animate-bounce' : ''}"></i>`;
+        };
 
-        const heading = document.createElement('h2');
-        heading.className = "text-3xl font-bold text-brand-slate mb-2 font-playfair";
-        heading.textContent = poi.name;
+        heroContainer.append(image, gradient, homeButton, heartBtn);
 
-        // Tags
-        const tagsDiv = document.createElement('div');
-        tagsDiv.className = 'flex flex-wrap gap-2';
-        if (poi.tags) {
-            poi.tags.forEach(tag => {
-                const tagSpan = document.createElement('span');
-                tagSpan.className = 'px-3 py-1 bg-brand-blue/30 text-brand-dark rounded-full text-xs font-semibold tracking-wide';
-                tagSpan.textContent = tag;
-                tagsDiv.appendChild(tagSpan);
-            });
-        }
+        // --- Content Section ---
+        const contentDiv = document.createElement('div');
+        contentDiv.className = "pt-10 pb-20";
 
-        headerDiv.appendChild(heading);
-        headerDiv.appendChild(tagsDiv);
+        // Title & Tags
+        const titleDiv = document.createElement('div');
+        titleDiv.className = "mb-6";
+        titleDiv.innerHTML = `
+            <h2 class="text-3xl font-bold text-brand-deep font-serif mb-3 leading-tight">${poi.name}</h2>
+            <div class="flex flex-wrap gap-2">
+                ${poi.tags ? poi.tags.map(tag => `<span class="px-3 py-1 bg-brand-mist/50 text-brand-deep rounded-full text-xs font-semibold tracking-wide uppercase border border-brand-mist">${tag}</span>`).join('') : ''}
+            </div>
+        `;
 
         // Meta Grid
         const metaGrid = document.createElement('div');
-        metaGrid.className = 'grid grid-cols-2 gap-3 mb-6';
+        metaGrid.className = 'grid grid-cols-2 gap-3 mb-8';
 
-        const createMetaItem = (icon, label, value) => {
-            const div = document.createElement('div');
-            div.className = 'bg-gray-50 rounded-lg p-3 border border-gray-100';
-            div.innerHTML = `
+        const createMeta = (icon, label, value) => `
+            <div class="bg-brand-ice p-3 rounded-xl border border-brand-mist/50 hover:border-brand-moss/30 transition-colors">
                 <div class="flex items-center text-brand-moss mb-1">
-                    <i class="${icon} text-sm mr-2"></i>
-                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500">${label}</span>
+                    <i class="${icon} text-base mr-2 opacity-80"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-brand-stone">${label}</span>
                 </div>
-                <div class="text-sm font-medium text-brand-dark leading-tight">${value}</div>
-            `;
-            return div;
-        };
+                <div class="text-sm font-semibold text-brand-deep leading-tight">${value}</div>
+            </div>
+        `;
 
-        if (poi.duration) metaGrid.appendChild(createMetaItem('fas fa-hourglass-half', 'Duration', poi.duration));
-        if (poi.bestTime) metaGrid.appendChild(createMetaItem('far fa-clock', 'Best Time', poi.bestTime));
-        if (poi.accessibility) metaGrid.appendChild(createMetaItem('fas fa-universal-access', 'Access', poi.accessibility));
-        // Placeholder to balance grid if needed, or spans 2 columns
+        if (poi.duration) metaGrid.innerHTML += createMeta('fas fa-hourglass-half', 'Duration', poi.duration);
+        if (poi.bestTime) metaGrid.innerHTML += createMeta('far fa-clock', 'Best Time', poi.bestTime);
+        if (poi.accessibility) metaGrid.innerHTML += createMeta('fas fa-universal-access', 'Access', poi.accessibility);
 
-        const description = document.createElement('p');
-        description.className = "text-brand-slate mb-6 text-base leading-relaxed font-light";
-        description.textContent = poi.description;
+        // Description
+        const desc = document.createElement('div');
+        desc.className = "prose prose-sm text-brand-stone mb-8 leading-relaxed font-light text-base max-w-none";
+        desc.textContent = poi.description;
 
         // Rich Content: Tips & Folklore
-        const extrasDiv = document.createElement('div');
-        extrasDiv.className = 'space-y-4 mb-8';
+        const extras = document.createElement('div');
+        extras.className = "space-y-4 mb-8";
 
         if (poi.tips) {
-            const tipBox = document.createElement('div');
-            tipBox.className = 'bg-yellow-50/80 border-l-4 border-yellow-400 p-4 rounded-r-lg';
-            tipBox.innerHTML = `
-                <h4 class="font-bold text-yellow-800 text-sm mb-1 flex items-center"><i class="far fa-lightbulb mr-2"></i>Explorer's Tip</h4>
-                <p class="text-sm text-yellow-900/80 italic">"${poi.tips}"</p>
+            extras.innerHTML += `
+                <div class="bg-yellow-50 p-5 rounded-xl border-l-4 border-yellow-400 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mt-2 -mr-2 text-yellow-200 opacity-50"><i class="far fa-lightbulb fa-4x"></i></div>
+                    <h4 class="font-bold text-yellow-800 text-sm mb-2 relative z-10">Explorer's Tip</h4>
+                    <p class="text-sm text-yellow-900/80 italic relative z-10">"${poi.tips}"</p>
+                </div>
             `;
-            extrasDiv.appendChild(tipBox);
         }
-
         if (poi.folklore) {
-            const loreBox = document.createElement('div');
-            loreBox.className = 'bg-brand-blue/20 p-4 rounded-lg relative overflow-hidden';
-            loreBox.innerHTML = `
-                <div class="absolute top-0 right-0 -mt-2 -mr-2 text-brand-blue/40 text-6xl opacity-20"><i class="fas fa-book-open"></i></div>
-                <h4 class="font-bold text-brand-dark text-sm mb-2 relative z-10 flex items-center"><i class="fas fa-book-open mr-2 text-brand-lava"></i>Legend & Lore</h4>
-                <p class="text-sm text-brand-slate relative z-10 font-serif leading-relaxed">"${poi.folklore}"</p>
+            extras.innerHTML += `
+                <div class="bg-brand-deep/5 p-5 rounded-xl relative overflow-hidden group border border-brand-mist/50">
+                     <div class="absolute top-0 right-0 -mt-2 -mr-2 text-brand-deep/10 text-6xl transition-transform group-hover:scale-110 duration-700"><i class="fas fa-book-open"></i></div>
+                    <h4 class="font-bold text-brand-deep text-sm mb-2 relative z-10 flex items-center"><i class="fas fa-book-open mr-2 text-brand-lava"></i>Legend & Lore</h4>
+                    <p class="text-sm text-brand-stone relative z-10 font-serif italic leading-relaxed">"${poi.folklore}"</p>
+                </div>
             `;
-            extrasDiv.appendChild(loreBox);
         }
 
-        const link = document.createElement('a');
-        link.href = poi.link;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.className = "group block w-full bg-gradient-to-r from-brand-moss to-green-700 text-white font-bold text-center py-4 rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 transform";
+        // Link Button
+        const linkBtn = document.createElement('a');
+        linkBtn.href = poi.link;
+        linkBtn.target = "_blank";
+        linkBtn.className = "block w-full bg-brand-deep text-white font-bold text-center py-4 rounded-xl shadow-lg hover:shadow-xl hover:bg-brand-moss transition-all transform hover:-translate-y-1 mb-8 flex items-center justify-center";
+        linkBtn.innerHTML = `Read Full Guide <i class="fas fa-external-link-alt ml-2 text-xs opacity-70"></i>`;
 
-        const linkText = document.createTextNode("Read Full Guide");
-        const icon = document.createElement('i');
-        icon.className = "fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform";
-        link.appendChild(linkText);
-        link.appendChild(icon);
+        contentDiv.append(titleDiv, metaGrid, desc, extras, linkBtn);
 
         // Navigation Controls
         const navDiv = document.createElement('div');
-        navDiv.className = 'flex justify-between items-center pt-4 border-t border-gray-200';
+        navDiv.className = 'flex justify-between items-center pt-6 border-t border-brand-mist';
 
         const index = globalPOIs.findIndex(p => p.id === poi.id);
 
         if (index > 0) {
             const prevBtn = document.createElement('button');
-            prevBtn.className = 'text-brand-moss hover:text-brand-dark font-medium flex items-center text-sm transition-colors px-3 py-2 rounded-lg hover:bg-gray-50';
+            prevBtn.className = 'text-brand-moss hover:text-brand-deep font-medium flex items-center text-sm transition-colors px-4 py-3 rounded-xl hover:bg-brand-ice';
             prevBtn.innerHTML = '<i class="fas fa-chevron-left mr-2"></i> Previous';
             prevBtn.onclick = () => navigateToPOI(globalPOIs[index - 1]);
             navDiv.appendChild(prevBtn);
         } else {
-            navDiv.appendChild(document.createElement('div')); // Spacer
+            navDiv.appendChild(document.createElement('div'));
         }
 
         if (index < globalPOIs.length - 1) {
             const nextBtn = document.createElement('button');
-            nextBtn.className = 'text-brand-moss hover:text-brand-dark font-medium flex items-center text-sm transition-colors px-3 py-2 rounded-lg hover:bg-gray-50';
+            nextBtn.className = 'text-brand-moss hover:text-brand-deep font-medium flex items-center text-sm transition-colors px-4 py-3 rounded-xl hover:bg-brand-ice';
             nextBtn.innerHTML = 'Next Stop <i class="fas fa-chevron-right ml-2"></i>';
             nextBtn.onclick = () => navigateToPOI(globalPOIs[index + 1]);
             navDiv.appendChild(nextBtn);
         }
 
-        poiContent.append(homeButton, heartBtn, heroContainer, headerDiv, metaGrid, description, extrasDiv, link, navDiv);
+        contentDiv.appendChild(navDiv);
 
+        poiContent.append(heroContainer, contentDiv);
         poiContent.style.opacity = '1';
     }, DURATION);
 }
@@ -522,31 +531,87 @@ function setupUIEventListeners(map) {
 
     // Bottom Sheet Interactions
     if (handle) {
-        let startY, isDragging = false;
+        let startY, isDragging = false, hasDragged = false;
+        const PEEK_HEIGHT = 70;
 
-        handle.addEventListener('click', () => {
-            if (sheetState === 'full') setSheetState('peek');
-            else setSheetState('full');
+        // Toggle on click (for both mouse and touch tap)
+        handle.addEventListener('click', (e) => {
+             // If we just dragged, don't toggle
+             if (hasDragged) {
+                 e.preventDefault();
+                 e.stopPropagation();
+                 return;
+             }
+             if (sheetState === 'full') setSheetState('peek');
+             else setSheetState('full');
         });
 
-        handle.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
+        // Unified Start Handler
+        const onDragStart = (y) => {
+            startY = y;
             isDragging = true;
-        }, {passive: true});
+            hasDragged = false;
+            sidebar.style.transition = 'none';
+        };
 
-        handle.addEventListener('touchend', (e) => {
+        // Unified Move Handler
+        const onDragMove = (y) => {
             if (!isDragging) return;
-            const endY = e.changedTouches[0].clientY;
-            const diff = startY - endY;
+            const deltaY = y - startY;
 
-            if (Math.abs(diff) > 30) { // Threshold
-                if (diff > 0) { // Swipe Up
+            if (Math.abs(deltaY) > 5) hasDragged = true;
+
+            const initialOffset = sheetState === 'full' ? 0 : (window.innerHeight - PEEK_HEIGHT);
+            let newOffset = initialOffset + deltaY;
+
+            if (newOffset < 0) newOffset = 0;
+            sidebar.style.transform = `translateY(${newOffset}px)`;
+        };
+
+        // Unified End Handler
+        const onDragEnd = (y) => {
+             if (!isDragging) return;
+            isDragging = false;
+            sidebar.style.transition = '';
+            sidebar.style.transform = '';
+
+            const diff = y - startY;
+            const THRESHOLD = 80;
+
+             // If drag was very small, treat as click/tap (optional, but click handler usually covers this)
+             // However, for drag logic:
+            if (sheetState === 'full') {
+                if (diff > THRESHOLD) {
+                    setSheetState('peek');
+                } else {
                     setSheetState('full');
-                } else { // Swipe Down
+                }
+            } else { // peek
+                if (diff < -THRESHOLD) {
+                    setSheetState('full');
+                } else {
                     setSheetState('peek');
                 }
             }
-            isDragging = false;
+        };
+
+        // Touch Events
+        handle.addEventListener('touchstart', (e) => onDragStart(e.touches[0].clientY), {passive: true});
+        handle.addEventListener('touchmove', (e) => onDragMove(e.touches[0].clientY), {passive: true});
+        handle.addEventListener('touchend', (e) => onDragEnd(e.changedTouches[0].clientY));
+
+        // Mouse Events
+        handle.addEventListener('mousedown', (e) => {
+            onDragStart(e.clientY);
+            // Attach move/up to window to handle dragging outside the handle
+            const moveHandler = (ev) => onDragMove(ev.clientY);
+            const upHandler = (ev) => {
+                onDragEnd(ev.clientY);
+                window.removeEventListener('mousemove', moveHandler);
+                window.removeEventListener('mouseup', upHandler);
+            };
+            window.addEventListener('mousemove', moveHandler);
+            window.addEventListener('mouseup', upHandler);
         });
     }
 
@@ -626,9 +691,6 @@ function setActiveMarker(id) {
     if (activeMarkerId && markers[activeMarkerId]) {
         const prevMarker = markers[activeMarkerId];
         const prevIcon = prevMarker.getIcon();
-        // Simply removing the class from the element would be cleaner but Leaflet recreates icons.
-        // We re-render the icon or modify the element if possible.
-        // Easiest is to modify the className of the icon options and setIcon again.
         prevIcon.options.className = prevIcon.options.className.replace(' active-marker', '');
         prevMarker.setIcon(prevIcon);
         prevMarker.setZIndexOffset(0);
@@ -648,13 +710,19 @@ function setActiveMarker(id) {
 }
 
 function createIcon(iconName, color) {
-    const iconHtml = `<div role="button" tabindex="0" class="w-10 h-10 rounded-full shadow-xl flex items-center justify-center border-2 border-white transform transition-transform hover:scale-110" style="background-color: ${color};"><i class="fas fa-${iconName} text-white text-lg"></i></div>`;
+    // Using span for the pulse to avoid colliding with .custom-div-icon div CSS selector
+    const iconHtml = `
+        <span class="absolute inset-0 rounded-full animate-[pulse-ring_2.5s_cubic-bezier(0.2,0,0,1)_infinite]" style="background-color: ${color}; opacity: 0.6; z-index: -1;"></span>
+        <div role="button" tabindex="0" class="w-10 h-10 rounded-full flex items-center justify-center border-[3px] border-white z-10" style="background-color: ${color};">
+            <i class="fas fa-${iconName} text-white text-base drop-shadow-sm"></i>
+        </div>
+    `;
     return L.divIcon({
         html: iconHtml,
-        className: 'custom-div-icon',
+        className: 'custom-div-icon flex items-center justify-center',
         iconSize: [40, 40],
         iconAnchor: [20, 20],
-        popupAnchor: [0, -20]
+        popupAnchor: [0, -24]
     });
 }
 
