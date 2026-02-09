@@ -2,169 +2,225 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Iceland's Ring of Wonder: An Explorer's Map</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet.polyline.snakeanim@0.2.0/L.Polyline.SnakeAnim.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* --- CORE TYPOGRAPHY & RESET --- */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F9FAFB;
-            color: #111827;
+            background-color: #F8FAFC; /* brand-ice */
+            color: #0F172A; /* brand-deep */
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            overflow: hidden; /* Prevent body scroll */
         }
         h1, h2, h3, h4, h5, h6 {
             font-family: 'Playfair Display', serif;
-            letter-spacing: -0.025em; /* Tighter tracking for elegance */
+            letter-spacing: -0.015em;
         }
-        p, span, div {
-            letter-spacing: 0.01em; /* Slight breathing room for body text */
-        }
+
+        /* --- GLASSMORPHISM --- */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow:
-                0 8px 32px 0 rgba(31, 38, 135, 0.07),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+                0 4px 6px -1px rgba(0, 0, 0, 0.05),
+                0 10px 15px -3px rgba(0, 0, 0, 0.05),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.5);
         }
+
+        /* --- SCROLLBARS --- */
+        /* Webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.4); /* brand-stone / 40% */
+            border-radius: 99px;
+            transition: background 0.3s;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.7);
+        }
+        /* Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+        }
+
+        /* --- MAP CONTAINER --- */
         #map { 
             height: 100vh; 
             width: 100%;
-            z-index: 10;
+            z-index: 0;
+            background: #cbd5e1; /* Fallback */
         }
-        /* Leaflet Controls Polish */
-        .leaflet-bar {
+
+        /* --- LEAFLET CUSTOMIZATIONS --- */
+        /* Zoom Controls */
+        .custom-zoom-control {
             border: none !important;
-            box-shadow: none !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            margin-right: 1.5rem !important;
+            margin-bottom: 2rem !important;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
-        .leaflet-bar a {
-            background-color: rgba(255, 255, 255, 0.85) !important;
-            backdrop-filter: blur(16px) saturate(180%);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
+        .leaflet-control-zoom-in, .leaflet-control-zoom-out {
+            width: 44px !important;
+            height: 44px !important;
+            line-height: 44px !important;
+            border-radius: 9999px !important; /* Circle */
+            background-color: rgba(255, 255, 255, 0.95) !important;
             color: #0F172A !important;
+            font-size: 20px !important;
+            font-weight: 300 !important;
             border: 1px solid rgba(255, 255, 255, 0.5) !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
         }
-        .leaflet-bar a:hover {
+        .leaflet-control-zoom-in:hover, .leaflet-control-zoom-out:hover {
             background-color: #ffffff !important;
             color: #2F5233 !important; /* brand-moss */
             transform: scale(1.05);
-        }
-        .leaflet-bar a:first-child {
-            border-top-left-radius: 12px !important;
-            border-top-right-radius: 12px !important;
-            border-bottom: none !important;
-        }
-        .leaflet-bar a:last-child {
-            border-bottom-left-radius: 12px !important;
-            border-bottom-right-radius: 12px !important;
-            border-top: none !important;
+            box-shadow: 0 0 0 4px rgba(47, 82, 51, 0.1);
         }
 
-        /* Popup Polish */
+        /* Attribution */
+        .leaflet-control-attribution {
+            background: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(4px);
+            padding: 4px 10px !important;
+            border-radius: 99px;
+            margin-bottom: 0.5rem !important;
+            margin-right: 0.5rem !important;
+            font-size: 10px !important;
+            color: #64748B !important;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .leaflet-control-attribution a {
+            color: #2F5233 !important;
+            text-decoration: none !important;
+            font-weight: 600;
+        }
+
+        /* Popups */
         .leaflet-popup-content-wrapper {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
             color: #0F172A;
             border-radius: 16px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.5);
-            animation: fadeIn 0.3s ease-in-out;
             padding: 0;
         }
         .leaflet-popup-content {
-            margin: 1rem;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            font-family: 'Inter', sans-serif;
+            margin: 0;
+            min-width: 200px;
         }
         .leaflet-popup-tip {
             background: rgba(255, 255, 255, 0.95);
             box-shadow: none;
         }
-
-        /* Bottom Sheet States */
-        @media (max-width: 767px) {
-            .sheet-hidden { transform: translateY(100%) !important; }
-            .sheet-peek { transform: translateY(calc(100% - 70px)) !important; } /* Visible handle + top padding */
-            .sheet-full { transform: translateY(0) !important; }
-        }
-
-        /* Custom scrollbar for sidebar */
-        #poi-sidebar::-webkit-scrollbar {
-            width: 4px;
-        }
-        #poi-sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        #poi-sidebar::-webkit-scrollbar-thumb {
-            background: rgba(100, 116, 139, 0.3); /* brand-stone / 30% */
-            border-radius: 20px;
-        }
-        #poi-sidebar::-webkit-scrollbar-thumb:hover {
-            background: rgba(100, 116, 139, 0.6);
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse-ring {
-            0% { transform: scale(0.33); opacity: 0.8; }
-            80%, 100% { opacity: 0; transform: scale(2); }
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(38, 139, 210, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(38, 139, 210, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(38, 139, 210, 0); }
-        }
-        .user-location-pulse {
+        .leaflet-container a.leaflet-popup-close-button {
+            top: 8px;
+            right: 8px;
+            color: #94A3B8;
+            font: 18px/14px Tahoma, Verdana, sans-serif;
+            padding: 4px 0 0 0;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            animation: pulse 2s infinite;
+        }
+        .leaflet-container a.leaflet-popup-close-button:hover {
+            color: #2F5233;
+            background: rgba(47, 82, 51, 0.05);
         }
 
-        /* Hover effect for buttons */
-        .hover-effect:hover {
-            transform: scale(1.03);
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        /* --- MARKERS --- */
+        .marker-pin {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% 50% 50% 0;
+            background: #fff;
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -20px 0 0 -20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .marker-pin::after {
+            content: '';
+            width: 32px;
+            height: 32px;
+            margin: 4px 0 0 4px;
+            background: #fff;
+            position: absolute;
+            border-radius: 50%;
+        }
+        .marker-pin i {
+            transform: rotate(45deg);
+            position: relative;
+            z-index: 10;
+            font-size: 16px;
         }
 
-        /* Hover effect for map markers */
-        .leaflet-marker-icon:hover {
-            transform: scale(1.1);
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            cursor: pointer;
+        /* Active/Hover State for Markers */
+        .custom-div-icon:hover .marker-pin,
+        .custom-div-icon.active-marker .marker-pin {
+            transform: rotate(-45deg) scale(1.15) translateY(-8px);
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.2);
+            z-index: 50;
+        }
+        .custom-div-icon.active-marker .marker-pin {
+            background: #2F5233; /* brand-moss */
+        }
+        .custom-div-icon.active-marker .marker-pin::after {
+            background: #fff;
+        }
+        .custom-div-icon.active-marker i {
+            color: #2F5233 !important;
         }
 
-        /* Loading animation */
-        #loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
+        /* Pulse Animation for Markers */
+        .pulse-ring {
+            position: absolute;
             width: 100%;
             height: 100%;
-            background: rgba(248, 250, 252, 0.95); /* brand-ice */
-            backdrop-filter: blur(12px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000; /* Higher than sidebar */
-            transition: opacity 0.6s ease-in-out;
+            border-radius: 50%;
+            animation: pulse-ring 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            z-index: -1;
+            box-sizing: content-box; /* Fix for leaflet */
         }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.5); opacity: 0.8; }
+            80%, 100% { opacity: 0; transform: scale(2.5); }
+        }
+
+        /* --- UI COMPONENTS --- */
+        /* Loader */
         .loader {
             width: 48px;
             height: 48px;
-            border: 3px solid #E2E8F0; /* brand-mist */
+            border: 3px solid #E2E8F0;
             border-radius: 50%;
             display: inline-block;
             position: relative;
@@ -182,36 +238,36 @@
             height: 60px;
             border-radius: 50%;
             border: 3px solid transparent;
-            border-bottom-color: #2F5233; /* brand-moss */
+            border-bottom-color: #2F5233;
         }
         @keyframes rotation {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
+        #loading-overlay {
+            background: rgba(248, 250, 252, 1);
+            z-index: 9999;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* Enhanced Marker Styles */
-        .custom-div-icon div {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        .animate-fade-up {
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        .custom-div-icon:hover div {
-            transform: scale(1.2) translateY(-8px);
-            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.4);
-            z-index: 1000;
+
+        /* Bottom Sheet Transitions */
+        .sheet-transition {
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
         }
-        /* Active Marker */
-        .custom-div-icon.active-marker div {
-            background-color: #ffffff !important;
-            border: 3px solid #2F5233 !important; /* brand-moss */
-            transform: scale(1.3) translateY(-12px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(47, 82, 51, 0.3);
-            z-index: 2000;
-        }
-        .custom-div-icon.active-marker i {
-            color: #2F5233 !important;
+        /* Mobile Specific States */
+        @media (max-width: 767px) {
+            .sheet-peek { transform: translateY(calc(100% - 90px)); } /* Just enough to see handle + title */
+            .sheet-half { transform: translateY(calc(100% - 45vh)); } /* Half screen */
+            .sheet-full { transform: translateY(0); }
+            .sheet-hidden { transform: translateY(100%); }
         }
     </style>
     <script>
@@ -219,21 +275,20 @@
             theme: {
                 extend: {
                     colors: {
-                        'brand-ice': '#F8FAFC',  // Slate 50
-                        'brand-mist': '#E2E8F0', // Slate 200
-                        'brand-stone': '#64748B',// Slate 500
-                        'brand-deep': '#0F172A', // Slate 900
-                        'brand-moss': '#2F5233', // Deep Forest Green
-                        'brand-lava': '#C0392B', // Burnt Red
-                        'brand-blue': '#E0F2FE', // Keeping for legacy/sky
-                        // Legacy mappings for safety
-                        'brand-dark': '#0F172A',
-                        'brand-cream': '#F8FAFC',
-                        'brand-slate': '#0F172A',
+                        'brand-ice': '#F8FAFC',
+                        'brand-mist': '#E2E8F0',
+                        'brand-stone': '#64748B',
+                        'brand-deep': '#0F172A',
+                        'brand-moss': '#2F5233',
+                        'brand-lava': '#C0392B',
+                        'brand-blue': '#E0F2FE',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         serif: ['Playfair Display', 'serif'],
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
                     }
                 }
             }
@@ -241,37 +296,56 @@
     </script>
 </head>
 <body>
-    <div id="loading-overlay">
+    <div id="loading-overlay" class="fixed inset-0 flex items-center justify-center transition-opacity duration-500">
         <div class="loader"></div>
     </div>
 
-    <div class="relative h-screen w-full overflow-hidden">
+    <!-- Main Container -->
+    <div class="relative h-screen w-full overflow-hidden bg-brand-ice">
+
         <!-- Sidebar / Bottom Sheet -->
-        <div id="poi-sidebar" class="glass-panel fixed bottom-0 left-0 w-full max-h-[85vh] md:max-h-none md:absolute md:top-4 md:left-4 md:bottom-auto md:w-96 md:h-[calc(100vh-2rem)] rounded-t-2xl md:rounded-xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] md:shadow-xl z-[1000] transform transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) translate-y-full md:translate-x-0 md:translate-y-0 flex flex-col p-6 pt-2 md:pt-6 overflow-y-auto overscroll-contain">
+        <div id="poi-sidebar" class="glass-panel fixed bottom-0 left-0 w-full z-[1000]
+            /* Mobile styles */
+            rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)]
+            h-[92vh] translate-y-full sheet-transition
+            /* Desktop styles */
+            md:absolute md:top-4 md:left-4 md:bottom-auto
+            md:w-[450px] md:h-[calc(100vh-2rem)]
+            md:rounded-2xl md:shadow-2xl md:transform-none md:translate-y-0
+            flex flex-col overflow-hidden">
+
             <!-- Drag Handle (Mobile Only) -->
-            <div id="sheet-handle" class="w-full flex justify-center pb-4 pt-4 cursor-grab active:cursor-grabbing md:hidden shrink-0 touch-none">
-                <div class="w-12 h-1.5 bg-gray-300/80 rounded-full hover:bg-brand-moss/50 transition-colors"></div>
+            <div id="sheet-handle" class="w-full flex justify-center py-4 cursor-grab active:cursor-grabbing md:hidden shrink-0 touch-none">
+                <div class="w-12 h-1.5 bg-brand-mist rounded-full hover:bg-brand-stone/50 transition-colors"></div>
             </div>
 
-            <button id="close-sidebar" class="md:hidden absolute top-4 right-4 text-brand-dark hover:text-brand-moss z-50 p-2" aria-label="Close sidebar">
-                <i class="fas fa-times fa-lg"></i>
+            <!-- Close Button (Mobile Only, Full View) -->
+            <button id="close-sidebar" class="md:hidden absolute top-4 right-4 text-brand-stone hover:text-brand-moss z-50 p-2 rounded-full hover:bg-white/50 transition-colors opacity-0 pointer-events-none transition-opacity duration-300" aria-label="Close details">
+                <i class="fas fa-chevron-down fa-lg"></i>
             </button>
-            <div id="sidebar-tabs" class="mb-4 hidden">
+
+            <!-- Sticky Header for Tabs -->
+            <div id="sidebar-tabs" class="px-6 pt-2 md:pt-6 shrink-0 z-20 bg-white/50 backdrop-blur-md border-b border-white/50 transition-all duration-300">
                 <!-- Tabs and filters generated by app.js -->
             </div>
-            <div id="poi-content">
-                <!-- Content is now generated by app.js -->
+
+            <!-- Scrollable Content -->
+            <div id="poi-content" class="flex-1 overflow-y-auto overflow-x-hidden p-6 relative overscroll-contain">
+                <!-- Content generated by app.js -->
             </div>
         </div>
 
-        <!-- Main Map Area -->
+        <!-- Map Area -->
         <div class="w-full h-full z-0 relative">
-            <div id="map"></div>
-             <button id="menu-button" class="md:hidden absolute top-4 left-4 glass-panel p-3 rounded-full shadow-md z-30 text-brand-dark hover:text-brand-moss transition-colors" aria-label="Open sidebar">
+            <div id="map" class="outline-none"></div>
+
+            <!-- Mobile Menu Toggle (Only visible if sheet is hidden/peek) -->
+             <button id="menu-button" class="md:hidden absolute top-4 left-4 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-moss transition-all active:scale-95" aria-label="Open menu">
                 <i class="fas fa-bars fa-lg"></i>
             </button>
-             <button id="user-location-button" class="absolute bottom-24 right-4 md:bottom-8 md:right-8 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-dark hover:text-brand-moss transition-colors" aria-label="Get my location">
-                <i class="fas fa-location-arrow fa-lg text-brand-blue"></i>
+
+             <button id="user-location-button" class="absolute bottom-24 right-4 md:bottom-8 md:right-8 glass-panel w-12 h-12 rounded-full shadow-xl z-30 text-brand-deep hover:text-brand-blue hover:scale-105 transition-all flex items-center justify-center" aria-label="Get my location">
+                <i class="fas fa-location-arrow fa-lg"></i>
             </button>
         </div>
     </div>
@@ -279,4 +353,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
