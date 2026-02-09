@@ -93,15 +93,15 @@ function renderSidebarTabs() {
     container.innerHTML = '';
     container.classList.remove('hidden');
 
-    // Tab Header
+    // Tab Header (Segmented Control Style)
     const tabHeader = document.createElement('div');
-    tabHeader.className = 'flex border-b border-gray-200 mb-4';
+    tabHeader.className = 'flex items-center justify-center p-1 bg-gray-100 rounded-xl mb-6 shadow-inner mx-1';
 
     const createTab = (id, label, icon) => {
         const btn = document.createElement('button');
         const isActive = activeTab === id;
-        btn.className = `flex-1 py-2 text-sm font-medium transition-colors border-b-2 focus:outline-none ${isActive ? 'border-brand-moss text-brand-moss' : 'border-transparent text-gray-500 hover:text-brand-dark'}`;
-        btn.innerHTML = `<i class="fas fa-${icon} mr-2"></i>${label}`;
+        btn.className = `flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none flex items-center justify-center ${isActive ? 'bg-white text-brand-deep shadow-sm ring-1 ring-black/5' : 'text-brand-stone hover:text-brand-deep hover:bg-gray-200/50'}`;
+        btn.innerHTML = `<i class="fas fa-${icon} mr-2 ${isActive ? 'text-brand-blue' : 'opacity-70'}"></i>${label}`;
         btn.onclick = () => {
             activeTab = id;
             renderSidebarTabs(); // Re-render tabs
@@ -174,11 +174,11 @@ function createInitialSidebarContent() {
 
     if (activeTab === 'discover') {
         const heading = document.createElement('h2');
-        heading.className = 'text-3xl font-bold mb-4 text-brand-dark';
+        heading.className = 'text-3xl font-bold mb-4 text-brand-deep';
         heading.textContent = 'The Journey Begins';
 
         const p = document.createElement('p');
-        p.className = 'text-brand-dark mb-6 leading-relaxed text-sm';
+        p.className = 'text-brand-deep mb-6 leading-relaxed text-sm';
         p.textContent = 'Explore the Ring Road. Select a category above or choose a location below.';
 
         poiContent.appendChild(heading);
@@ -198,34 +198,34 @@ function createInitialSidebarContent() {
         listDiv.appendChild(listHeader);
 
         const poiList = document.createElement('ul');
-        poiList.className = 'space-y-3 pb-20 md:pb-0'; // Add padding for bottom sheet safe area
+        poiList.className = 'space-y-4 pb-20 md:pb-0 px-1';
 
         filteredPOIs.forEach((poi, loopIndex) => {
             const index = globalPOIs.findIndex(p => p.id === poi.id);
             const item = document.createElement('li');
-            item.className = 'flex items-start bg-white rounded-xl shadow-sm border border-brand-mist hover:shadow-md hover:border-brand-moss/30 cursor-pointer transition-all duration-300 group overflow-hidden hover:-translate-y-0.5';
+            item.className = 'flex flex-col md:flex-row bg-white rounded-2xl shadow-sm border border-brand-mist hover:shadow-xl hover:border-brand-blue/30 cursor-pointer transition-all duration-300 group overflow-hidden hover:-translate-y-1';
             item.style.opacity = '0';
             item.style.animation = `fadeInUp 0.5s ease-out forwards ${loopIndex * 0.05}s`;
 
             const imgUrl = poi.image ? poi.image : 'https://placehold.co/400x300/e2e8f0/64748b?text=Iceland';
 
             item.innerHTML = `
-                <div class="relative w-24 h-24 shrink-0 m-2">
-                    <img src="${imgUrl}" alt="${poi.name}" class="w-full h-full object-cover rounded-lg bg-gray-100" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e2e8f0/64748b?text=Iceland';">
-                    <div class="absolute top-1 left-1 bg-brand-deep/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm shadow-sm">${index + 1}</div>
+                <div class="relative w-full md:w-32 h-32 md:h-auto shrink-0 md:m-0">
+                    <img src="${imgUrl}" alt="${poi.name}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e2e8f0/64748b?text=Iceland';">
+                    <div class="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">${index + 1}</div>
+                    ${favorites.has(poi.id) ? '<div class="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full shadow-sm"><i class="fas fa-heart text-brand-lava text-xs"></i></div>' : ''}
                 </div>
-                <div class="flex-1 p-3 pl-1 min-w-0 flex flex-col justify-center h-28">
+                <div class="flex-1 p-4 flex flex-col justify-center min-w-0">
                     <div class="flex justify-between items-start mb-1">
-                        <h4 class="font-bold text-brand-deep text-sm leading-tight group-hover:text-brand-moss transition-colors line-clamp-2">${poi.name}</h4>
-                        ${favorites.has(poi.id) ? '<i class="fas fa-heart text-brand-lava text-xs ml-2 mt-0.5 animate-pulse"></i>' : ''}
+                        <h4 class="font-bold text-brand-deep text-base font-serif leading-tight group-hover:text-brand-blue transition-colors line-clamp-1">${poi.name}</h4>
                     </div>
-                    <div class="flex items-center mb-1">
-                         <span class="text-[10px] font-bold tracking-wider uppercase text-brand-moss bg-brand-moss/10 px-2 py-0.5 rounded-full">${poi.category}</span>
+                    <div class="flex items-center mb-2">
+                         <span class="text-[10px] font-bold tracking-wider uppercase text-brand-stone bg-brand-mist/50 px-2 py-0.5 rounded-full border border-brand-mist">${poi.category}</span>
                     </div>
-                    <p class="text-xs text-brand-stone line-clamp-2 leading-relaxed">${poi.description}</p>
-                </div>
-                <div class="flex items-center justify-center h-28 w-8 text-brand-stone/30 group-hover:text-brand-moss/50 transition-colors">
-                    <i class="fas fa-chevron-right text-sm"></i>
+                    <p class="text-xs text-brand-stone line-clamp-2 leading-relaxed mb-3">${poi.description}</p>
+                    <div class="flex items-center text-xs text-brand-blue font-medium mt-auto group-hover:translate-x-1 transition-transform">
+                        Explore Location <i class="fas fa-arrow-right ml-1"></i>
+                    </div>
                 </div>
             `;
             item.addEventListener('click', () => navigateToPOI(poi));
@@ -362,8 +362,11 @@ function updateSidebar(poi) {
         poiContent.innerHTML = '';
 
         // --- Hero Section ---
-        const heroContainer = document.createElement('div');
-        heroContainer.className = "relative w-[calc(100%+3rem)] -ml-6 -mt-2 md:-mt-6 h-72 shrink-0 group overflow-hidden";
+        const heroWrapper = document.createElement('div');
+        heroWrapper.className = "relative w-[calc(100%+3rem)] -ml-6 -mt-2 md:-mt-6 shrink-0 z-10 mb-8";
+
+        const heroImageContainer = document.createElement('div');
+        heroImageContainer.className = "relative h-80 w-full overflow-hidden rounded-b-3xl md:rounded-b-2xl shadow-md group";
 
         const image = document.createElement('img');
         image.src = poi.image;
@@ -375,52 +378,54 @@ function updateSidebar(poi) {
         };
 
         const gradient = document.createElement('div');
-        gradient.className = "absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none";
+        gradient.className = "absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none";
 
         // Back Button
         const homeButton = document.createElement('button');
         homeButton.id = 'home-button'; // Keep ID for event delegation
-        homeButton.className = 'absolute top-4 left-4 z-20 text-white hover:text-brand-blue transition-colors p-2 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full w-10 h-10 flex items-center justify-center';
+        homeButton.className = 'absolute top-4 left-4 z-20 text-white hover:text-brand-blue transition-all p-2 bg-black/20 hover:bg-black/50 backdrop-blur-md rounded-full w-10 h-10 flex items-center justify-center border border-white/20';
         homeButton.setAttribute('aria-label', 'Back to home');
         homeButton.innerHTML = '<i class="fas fa-arrow-left"></i>';
         homeButton.onclick = resetSidebar;
 
-        // Heart FAB
+        heroImageContainer.append(image, gradient, homeButton);
+
+        // Heart FAB (Outside overflow-hidden container)
         const isFav = favorites.has(poi.id);
         const heartBtn = document.createElement('button');
-        heartBtn.className = `absolute -bottom-6 right-6 z-30 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${isFav ? 'bg-brand-lava text-white' : 'bg-white text-brand-stone hover:text-brand-lava'}`;
+        heartBtn.className = `absolute -bottom-6 right-8 z-30 w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${isFav ? 'bg-brand-lava text-white' : 'bg-white text-brand-stone hover:text-brand-lava'}`;
         heartBtn.innerHTML = `<i class="${isFav ? 'fas' : 'far'} fa-heart fa-xl ${isFav ? 'animate-bounce' : ''}"></i>`;
         heartBtn.onclick = (e) => {
             e.stopPropagation();
             toggleFavorite(poi.id);
             const newIsFav = favorites.has(poi.id);
-            heartBtn.className = `absolute -bottom-6 right-6 z-30 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${newIsFav ? 'bg-brand-lava text-white' : 'bg-white text-brand-stone hover:text-brand-lava'}`;
+            heartBtn.className = `absolute -bottom-6 right-8 z-30 w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${newIsFav ? 'bg-brand-lava text-white' : 'bg-white text-brand-stone hover:text-brand-lava'}`;
             heartBtn.innerHTML = `<i class="${newIsFav ? 'fas' : 'far'} fa-heart fa-xl ${newIsFav ? 'animate-bounce' : ''}"></i>`;
         };
 
-        heroContainer.append(image, gradient, homeButton, heartBtn);
+        heroWrapper.append(heroImageContainer, heartBtn);
 
         // --- Content Section ---
         const contentDiv = document.createElement('div');
-        contentDiv.className = "pt-10 pb-20";
+        contentDiv.className = "pt-12 pb-24 px-1";
 
         // Title & Tags
         const titleDiv = document.createElement('div');
-        titleDiv.className = "mb-6";
+        titleDiv.className = "mb-8";
         titleDiv.innerHTML = `
-            <h2 class="text-3xl font-bold text-brand-deep font-serif mb-3 leading-tight">${poi.name}</h2>
+            <h2 class="text-4xl font-bold text-brand-deep font-serif mb-4 leading-none tracking-tight">${poi.name}</h2>
             <div class="flex flex-wrap gap-2">
-                ${poi.tags ? poi.tags.map(tag => `<span class="px-3 py-1 bg-brand-mist/50 text-brand-deep rounded-full text-xs font-semibold tracking-wide uppercase border border-brand-mist">${tag}</span>`).join('') : ''}
+                ${poi.tags ? poi.tags.map(tag => `<span class="px-3 py-1 bg-brand-ice text-brand-deep rounded-full text-xs font-bold tracking-wide uppercase border border-brand-mist shadow-sm">${tag}</span>`).join('') : ''}
             </div>
         `;
 
         // Meta Grid
         const metaGrid = document.createElement('div');
-        metaGrid.className = 'grid grid-cols-2 gap-3 mb-8';
+        metaGrid.className = 'grid grid-cols-2 gap-4 mb-8';
 
         const createMeta = (icon, label, value) => `
-            <div class="bg-brand-ice p-3 rounded-xl border border-brand-mist/50 hover:border-brand-moss/30 transition-colors">
-                <div class="flex items-center text-brand-moss mb-1">
+            <div class="bg-brand-ice p-4 rounded-2xl border border-brand-mist/50 hover:border-brand-blue/30 transition-colors shadow-sm">
+                <div class="flex items-center text-brand-blue mb-1.5">
                     <i class="${icon} text-base mr-2 opacity-80"></i>
                     <span class="text-[10px] font-bold uppercase tracking-wider text-brand-stone">${label}</span>
                 </div>
@@ -434,28 +439,28 @@ function updateSidebar(poi) {
 
         // Description
         const desc = document.createElement('div');
-        desc.className = "prose prose-sm text-brand-stone mb-8 leading-relaxed font-light text-base max-w-none";
+        desc.className = "prose prose-slate prose-sm text-brand-stone mb-10 leading-7 font-normal text-base max-w-none";
         desc.textContent = poi.description;
 
         // Rich Content: Tips & Folklore
         const extras = document.createElement('div');
-        extras.className = "space-y-4 mb-8";
+        extras.className = "space-y-6 mb-10";
 
         if (poi.tips) {
             extras.innerHTML += `
-                <div class="bg-yellow-50 p-5 rounded-xl border-l-4 border-yellow-400 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 -mt-2 -mr-2 text-yellow-200 opacity-50"><i class="far fa-lightbulb fa-4x"></i></div>
-                    <h4 class="font-bold text-yellow-800 text-sm mb-2 relative z-10">Explorer's Tip</h4>
-                    <p class="text-sm text-yellow-900/80 italic relative z-10">"${poi.tips}"</p>
+                <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100 relative overflow-hidden shadow-sm">
+                    <div class="absolute top-0 right-0 -mt-2 -mr-2 text-amber-200 opacity-40"><i class="far fa-lightbulb fa-5x"></i></div>
+                    <h4 class="font-bold text-amber-800 text-sm mb-2 relative z-10 flex items-center uppercase tracking-wide"><i class="fas fa-lightbulb mr-2"></i> Explorer's Tip</h4>
+                    <p class="text-sm text-amber-900/90 italic relative z-10 font-medium">"${poi.tips}"</p>
                 </div>
             `;
         }
         if (poi.folklore) {
             extras.innerHTML += `
-                <div class="bg-brand-deep/5 p-5 rounded-xl relative overflow-hidden group border border-brand-mist/50">
-                     <div class="absolute top-0 right-0 -mt-2 -mr-2 text-brand-deep/10 text-6xl transition-transform group-hover:scale-110 duration-700"><i class="fas fa-book-open"></i></div>
-                    <h4 class="font-bold text-brand-deep text-sm mb-2 relative z-10 flex items-center"><i class="fas fa-book-open mr-2 text-brand-lava"></i>Legend & Lore</h4>
-                    <p class="text-sm text-brand-stone relative z-10 font-serif italic leading-relaxed">"${poi.folklore}"</p>
+                <div class="bg-brand-deep p-6 rounded-2xl relative overflow-hidden group shadow-lg text-white">
+                     <div class="absolute top-0 right-0 -mt-2 -mr-2 text-white/5 text-7xl transition-transform group-hover:scale-110 duration-700"><i class="fas fa-book-open"></i></div>
+                    <h4 class="font-bold text-brand-blue text-sm mb-3 relative z-10 flex items-center uppercase tracking-wide"><i class="fas fa-book-open mr-2"></i> Legend & Lore</h4>
+                    <p class="text-sm text-gray-300 relative z-10 font-serif italic leading-relaxed text-lg">"${poi.folklore}"</p>
                 </div>
             `;
         }
@@ -495,7 +500,7 @@ function updateSidebar(poi) {
 
         contentDiv.appendChild(navDiv);
 
-        poiContent.append(heroContainer, contentDiv);
+        poiContent.append(heroWrapper, contentDiv);
         poiContent.style.opacity = '1';
     }, DURATION);
 }
@@ -564,7 +569,9 @@ function setupUIEventListeners(map) {
             const initialOffset = sheetState === 'full' ? 0 : (window.innerHeight - PEEK_HEIGHT);
             let newOffset = initialOffset + deltaY;
 
-            if (newOffset < 0) newOffset = 0;
+            // Resistance when pulling past top
+            if (newOffset < 0) newOffset = newOffset * 0.3;
+
             sidebar.style.transform = `translateY(${newOffset}px)`;
         };
 
@@ -572,14 +579,15 @@ function setupUIEventListeners(map) {
         const onDragEnd = (y) => {
              if (!isDragging) return;
             isDragging = false;
-            sidebar.style.transition = '';
+            // Restore smooth physics-based transition
+            sidebar.style.transition = 'transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)';
             sidebar.style.transform = '';
 
             const diff = y - startY;
             const THRESHOLD = 80;
+            const VELOCITY_THRESHOLD = 0.5; // Simple proxy for now
 
-             // If drag was very small, treat as click/tap (optional, but click handler usually covers this)
-             // However, for drag logic:
+            // Logic to snap based on threshold
             if (sheetState === 'full') {
                 if (diff > THRESHOLD) {
                     setSheetState('peek');
@@ -710,11 +718,11 @@ function setActiveMarker(id) {
 }
 
 function createIcon(iconName, color) {
-    // Using span for the pulse to avoid colliding with .custom-div-icon div CSS selector
+    // Refined marker with better shadow and opacity pulse
     const iconHtml = `
-        <span class="absolute inset-0 rounded-full animate-[pulse-ring_2.5s_cubic-bezier(0.2,0,0,1)_infinite]" style="background-color: ${color}; opacity: 0.6; z-index: -1;"></span>
-        <div role="button" tabindex="0" class="w-10 h-10 rounded-full flex items-center justify-center border-[3px] border-white z-10" style="background-color: ${color};">
-            <i class="fas fa-${iconName} text-white text-base drop-shadow-sm"></i>
+        <span class="absolute inset-0 rounded-full animate-[pulse-ring_2.5s_cubic-bezier(0.2,0,0,1)_infinite]" style="background-color: ${color}; opacity: 0.4; z-index: -1;"></span>
+        <div role="button" tabindex="0" class="w-10 h-10 rounded-full flex items-center justify-center border-[3px] border-white shadow-lg z-10 transition-transform duration-300" style="background-color: ${color};">
+            <i class="fas fa-${iconName} text-white text-base drop-shadow-md"></i>
         </div>
     `;
     return L.divIcon({
@@ -722,38 +730,38 @@ function createIcon(iconName, color) {
         className: 'custom-div-icon flex items-center justify-center',
         iconSize: [40, 40],
         iconAnchor: [20, 20],
-        popupAnchor: [0, -24]
+        popupAnchor: [0, -28]
     });
 }
 
 function addMarkersToMap(map, pointsOfInterest) {
     const icons = {
-        waterfall: createIcon('water', '#268BD2'),
-        geothermal: createIcon('fire', '#D33682'),
-        town: createIcon('city', '#859900'),
-        landmark: createIcon('landmark', '#CB4B16'),
-        park: createIcon('tree', '#2AA198')
+        waterfall: createIcon('water', '#0EA5E9'), // Sky 500
+        geothermal: createIcon('fire', '#E11D48'), // Rose 600
+        town: createIcon('city', '#64748B'), // Slate 500
+        landmark: createIcon('landmark', '#F59E0B'), // Amber 500
+        park: createIcon('tree', '#2F5233') // Brand Moss
     };
 
     pointsOfInterest.forEach(poi => {
         const marker = L.marker([poi.lat, poi.lng], { icon: icons[poi.category] || icons.landmark }).addTo(map);
         markers[poi.id] = marker; // Store marker reference
 
-        const popupElement = document.createElement('div');
-        popupElement.className = 'p-2';
+        // Polished Popup Content
+        const popupHtml = `
+            <div class="px-1 py-2 min-w-[180px]">
+                <h3 class="text-lg font-bold text-brand-deep font-serif leading-tight mb-1">${poi.name}</h3>
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-brand-stone bg-brand-mist/50 px-2 py-0.5 rounded-full">${poi.category}</span>
+                    <span class="text-brand-blue text-xs font-medium group-hover:translate-x-1 transition-transform"><i class="fas fa-chevron-right"></i></span>
+                </div>
+            </div>
+        `;
 
-        const heading = document.createElement('h3');
-        heading.className = 'text-lg font-bold text-brand-slate mb-1';
-        heading.textContent = poi.name;
-
-        const category = document.createElement('p');
-        category.className = 'text-sm text-brand-slate';
-        category.textContent = poi.category.charAt(0).toUpperCase() + poi.category.slice(1);
-
-        popupElement.appendChild(heading);
-        popupElement.appendChild(category);
-
-        marker.bindPopup(popupElement);
+        marker.bindPopup(popupHtml, {
+            closeButton: false,
+            offset: [0, -4]
+        });
 
         marker.on('mouseover', function (e) {
             this.openPopup();
