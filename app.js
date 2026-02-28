@@ -335,7 +335,7 @@ function setSheetState(state) {
     sidebar.classList.remove('translate-y-full');
 
     // Remove all sheet classes
-    sidebar.classList.remove('sheet-hidden', 'sheet-peek', 'sheet-full');
+    sidebar.classList.remove('sheet-hidden', 'sheet-peek', 'sheet-half', 'sheet-full');
 
     // Add new state class
     sidebar.classList.add(`sheet-${state}`);
@@ -522,8 +522,10 @@ function setupUIEventListeners(map) {
     });
 
     menuButton.addEventListener('click', () => {
-        // Toggle between full and hidden/peek
+        // Toggle between full and hidden/peek/half
         if (sheetState === 'hidden' || sheetState === 'peek') {
+            setSheetState('half');
+        } else if (sheetState === 'half') {
             setSheetState('full');
         } else {
             setSheetState('peek');
@@ -548,15 +550,22 @@ function setupUIEventListeners(map) {
                  return;
              }
              if (sheetState === 'full') setSheetState('peek');
+             else if (sheetState === 'peek') setSheetState('half');
              else setSheetState('full');
         });
 
         // Unified Start Handler
         const onDragStart = (y) => {
-            startY = y;
             isDragging = true;
             hasDragged = false;
             sidebar.style.transition = 'none';
+
+            // Get current transform
+            const style = window.getComputedStyle(sidebar);
+            const matrix = new WebKitCSSMatrix(style.transform);
+
+            // Assign startY based on current offset
+            startY = y - matrix.m42;
         };
 
         // Unified Move Handler
@@ -566,8 +575,7 @@ function setupUIEventListeners(map) {
 
             if (Math.abs(deltaY) > 5) hasDragged = true;
 
-            const initialOffset = sheetState === 'full' ? 0 : (window.innerHeight - PEEK_HEIGHT);
-            let newOffset = initialOffset + deltaY;
+            let newOffset = y - startY;
 
             // Resistance when pulling past top
             if (newOffset < 0) newOffset = newOffset * 0.3;
@@ -583,23 +591,16 @@ function setupUIEventListeners(map) {
             sidebar.style.transition = 'transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)';
             sidebar.style.transform = '';
 
-            const diff = y - startY;
-            const THRESHOLD = 80;
-            const VELOCITY_THRESHOLD = 0.5; // Simple proxy for now
+            const finalOffset = y - startY;
+            const h = window.innerHeight;
 
             // Logic to snap based on threshold
-            if (sheetState === 'full') {
-                if (diff > THRESHOLD) {
-                    setSheetState('peek');
-                } else {
-                    setSheetState('full');
-                }
-            } else { // peek
-                if (diff < -THRESHOLD) {
-                    setSheetState('full');
-                } else {
-                    setSheetState('peek');
-                }
+            if (finalOffset < h * 0.25) {
+                setSheetState('full');
+            } else if (finalOffset > h * 0.75) {
+                setSheetState('peek');
+            } else {
+                setSheetState('half');
             }
         };
 
@@ -679,14 +680,19 @@ function showSidebarError(message) {
 
 // --- NAVIGATION ---
 function navigateToPOI(poi) {
-    map.flyTo([poi.lat, poi.lng], 13, {
+    // Prevent occlusion by manually offsetting the coordinate
+    const lngOffset = window.innerWidth >= 768 ? -0.1 : 0;
+    const latOffset = window.innerWidth < 768 ? -0.05 : 0;
+
+    map.flyTo([poi.lat + latOffset, poi.lng + lngOffset], 13, {
         animate: true,
         duration: 1.5
     });
     updateSidebar(poi);
-    // On mobile, show the bottom sheet as peek to reveal map
+    setActiveMarker(poi.id);
+    // On mobile, show the bottom sheet as half to reveal map
     if (window.innerWidth < 768) {
-        setSheetState('peek');
+        setSheetState('half');
     }
 }
 
