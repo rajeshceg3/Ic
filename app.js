@@ -6,6 +6,58 @@ let favorites = new Set();
 let activeCategory = 'All';
 let searchTerm = '';
 
+// --- CINEMATIC TOUR STATE ---
+let tourInterval = null;
+let tourIndex = 0;
+let isTourRunning = false;
+
+// --- CINEMATIC TOUR LOGIC ---
+function startCinematicTour() {
+    if (globalPOIs.length === 0) return;
+    isTourRunning = true;
+    tourIndex = 0;
+
+    // UI feedback
+    const tourBtn = document.getElementById('tour-btn');
+    if (tourBtn) {
+        tourBtn.innerHTML = '<i class="fas fa-stop-circle mr-2"></i> Stop Tour';
+        tourBtn.classList.replace('bg-brand-deep', 'bg-brand-lava');
+        tourBtn.onclick = stopCinematicTour;
+    }
+
+    playNextTourStop();
+    // 8 seconds per stop for a relaxed pace
+    tourInterval = setInterval(playNextTourStop, 8000);
+}
+
+function playNextTourStop() {
+    if (!isTourRunning || tourIndex >= globalPOIs.length) {
+        stopCinematicTour();
+        return;
+    }
+
+    const poi = globalPOIs[tourIndex];
+    navigateToPOI(poi);
+
+    tourIndex++;
+}
+
+function stopCinematicTour() {
+    isTourRunning = false;
+    if (tourInterval) {
+        clearInterval(tourInterval);
+        tourInterval = null;
+    }
+
+    // UI feedback reset
+    const tourBtn = document.getElementById('tour-btn');
+    if (tourBtn) {
+        tourBtn.innerHTML = '<i class="fas fa-play-circle mr-2"></i> Start Cinematic Tour';
+        tourBtn.classList.replace('bg-brand-lava', 'bg-brand-deep');
+        tourBtn.onclick = startCinematicTour;
+    }
+}
+
 // --- LOGIC & HELPERS ---
 function loadFavorites() {
     try {
@@ -26,13 +78,30 @@ function saveFavorites() {
     }
 }
 
+function triggerConfetti() {
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#2F5233', '#0EA5E9', '#C0392B']
+        });
+    }
+}
+
 function toggleFavorite(id) {
+    let justAdded = false;
     if (favorites.has(id)) {
         favorites.delete(id);
     } else {
         favorites.add(id);
+        justAdded = true;
     }
     saveFavorites();
+
+    if (justAdded && (favorites.size === 3 || favorites.size === 7)) {
+        triggerConfetti();
+    }
 }
 
 function filterPOIs() {
@@ -183,6 +252,25 @@ function createInitialSidebarContent() {
 
         poiContent.appendChild(heading);
         poiContent.appendChild(p);
+
+        // Cinematic Tour Button
+        const tourBtnContainer = document.createElement('div');
+        tourBtnContainer.className = 'mb-8';
+        const tourBtn = document.createElement('button');
+        tourBtn.id = 'tour-btn';
+        tourBtn.className = 'w-full bg-brand-deep text-white font-bold text-center py-4 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-center';
+
+        if (isTourRunning) {
+            tourBtn.innerHTML = '<i class="fas fa-stop-circle mr-2"></i> Stop Tour';
+            tourBtn.classList.replace('bg-brand-deep', 'bg-brand-lava');
+            tourBtn.onclick = stopCinematicTour;
+        } else {
+            tourBtn.innerHTML = '<i class="fas fa-play-circle mr-2"></i> Start Cinematic Tour';
+            tourBtn.onclick = startCinematicTour;
+        }
+
+        tourBtnContainer.appendChild(tourBtn);
+        poiContent.appendChild(tourBtnContainer);
 
         // Filtered List
         const filteredPOIs = filterPOIs();
@@ -371,7 +459,7 @@ function updateSidebar(poi) {
         const image = document.createElement('img');
         image.src = poi.image;
         image.alt = poi.name;
-        image.className = "w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105";
+        image.className = "w-full h-full object-cover ken-burns-image";
         image.onerror = function() {
             this.onerror=null;
             this.src='https://placehold.co/400x300/e2e8f0/64748b?text=Iceland';
