@@ -138,6 +138,23 @@
             background: rgba(100, 116, 139, 0.6);
         }
 
+        /* Atmospheric Overlay */
+        #atmosphere-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            background: radial-gradient(circle at center, transparent 0%, rgba(248, 250, 252, 0.15) 100%),
+                        url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+            opacity: 0.2;
+            mix-blend-mode: overlay;
+            animation: drift 60s linear infinite;
+        }
+        @keyframes drift {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 200px; }
+        }
+
         /* Animations */
         @keyframes ken-burns {
             0% { transform: scale(1); }
@@ -218,8 +235,14 @@
         .custom-div-icon:hover div {
             transform: scale(1.15) translateY(-5px);
         }
+        @keyframes aurora-glow {
+            0% { box-shadow: 0 0 10px 2px rgba(14, 165, 233, 0.4), 0 0 20px 5px rgba(47, 82, 51, 0.3); }
+            50% { box-shadow: 0 0 15px 4px rgba(47, 82, 51, 0.6), 0 0 25px 8px rgba(168, 85, 247, 0.4); }
+            100% { box-shadow: 0 0 10px 2px rgba(14, 165, 233, 0.4), 0 0 20px 5px rgba(47, 82, 51, 0.3); }
+        }
         .custom-div-icon.active-marker div {
-             box-shadow: 0 0 0 4px rgba(47, 82, 51, 0.2);
+             animation: aurora-glow 3s infinite alternate ease-in-out;
+             border-color: rgba(255, 255, 255, 0.9);
         }
     </style>
     <script>
@@ -271,8 +294,13 @@
         <!-- Main Map Area -->
         <div class="w-full h-full z-0 relative">
             <div id="map"></div>
+            <!-- Atmospheric Overlay -->
+            <div id="atmosphere-overlay"></div>
              <button id="menu-button" class="md:hidden absolute top-4 left-4 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-moss transition-all active:scale-95" aria-label="Open sidebar">
                 <i class="fas fa-bars fa-lg"></i>
+            </button>
+             <button id="audio-toggle-button" class="absolute bottom-40 right-4 md:bottom-24 md:right-8 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-moss transition-all active:scale-95 group" aria-label="Toggle Audio">
+                <i id="audio-toggle-icon" class="fas fa-volume-mute fa-lg text-brand-stone group-hover:text-brand-moss transition-colors"></i>
             </button>
              <button id="user-location-button" class="absolute bottom-24 right-4 md:bottom-8 md:right-8 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-blue transition-all active:scale-95 group" aria-label="Get my location">
                 <i class="fas fa-location-arrow fa-lg text-brand-stone group-hover:text-brand-blue transition-colors"></i>
