@@ -2,6 +2,78 @@
 let map;
 let globalPOIs = [];
 let activeTab = 'discover'; // 'discover' or 'logbook'
+
+// --- AUDIO MANAGER ---
+const AudioManager = {
+    audioEnabled: false,
+    currentAudio: null,
+    sounds: {
+        waterfall: new Audio('https://cdn.freesound.org/previews/515/515822_10823338-lq.mp3'),
+        geothermal: new Audio('https://cdn.freesound.org/previews/173/173934_321967-lq.mp3'),
+        wind: new Audio('https://cdn.freesound.org/previews/387/387538_7477543-lq.mp3'),
+        waves: new Audio('https://cdn.freesound.org/previews/400/400508_4397472-lq.mp3')
+    },
+    init: function() {
+        Object.values(this.sounds).forEach(audio => {
+            audio.loop = true;
+            audio.volume = 0;
+        });
+    },
+    toggleMute: function() {
+        this.audioEnabled = !this.audioEnabled;
+        if (!this.audioEnabled && this.currentAudio) {
+            this.fadeOut(this.currentAudio);
+        } else if (this.audioEnabled && this.currentAudio) {
+            this.fadeIn(this.currentAudio);
+        }
+        return this.audioEnabled;
+    },
+    playCategory: function(category) {
+        let soundKey = 'wind'; // Default ambient
+        if (category === 'waterfall') soundKey = 'waterfall';
+        else if (category === 'geothermal') soundKey = 'geothermal';
+        else if (category === 'landmark' || category === 'beach') soundKey = 'waves';
+
+        const newAudio = this.sounds[soundKey];
+        if (this.currentAudio === newAudio) return;
+
+        if (this.currentAudio) {
+            this.fadeOut(this.currentAudio);
+        }
+
+        this.currentAudio = newAudio;
+        if (this.audioEnabled) {
+            this.fadeIn(this.currentAudio);
+        }
+    },
+    fadeIn: function(audio) {
+        audio.play().catch(e => console.log('Audio play failed:', e));
+        let vol = 0;
+        audio.volume = 0;
+        const fadeInterval = setInterval(() => {
+            if (vol < 0.4) {
+                vol += 0.05;
+                audio.volume = vol;
+            } else {
+                clearInterval(fadeInterval);
+            }
+        }, 100);
+    },
+    fadeOut: function(audio) {
+        let vol = audio.volume;
+        const fadeInterval = setInterval(() => {
+            if (vol > 0.05) {
+                vol -= 0.05;
+                audio.volume = vol;
+            } else {
+                audio.volume = 0;
+                audio.pause();
+                clearInterval(fadeInterval);
+            }
+        }, 100);
+    }
+};
+AudioManager.init();
 let favorites = new Set();
 let activeCategory = 'All';
 let searchTerm = '';
@@ -10,6 +82,7 @@ let searchTerm = '';
 let tourInterval = null;
 let tourIndex = 0;
 let isTourRunning = false;
+let currentUtterance = null;
 
 // --- CINEMATIC TOUR LOGIC ---
 function startCinematicTour() {
@@ -26,8 +99,6 @@ function startCinematicTour() {
     }
 
     playNextTourStop();
-    // 8 seconds per stop for a relaxed pace
-    tourInterval = setInterval(playNextTourStop, 8000);
 }
 
 function playNextTourStop() {
@@ -36,17 +107,57 @@ function playNextTourStop() {
         return;
     }
 
+    if (tourInterval) {
+        clearTimeout(tourInterval);
+        tourInterval = null;
+    }
+
     const poi = globalPOIs[tourIndex];
     navigateToPOI(poi);
 
-    tourIndex++;
+    // TTS narration
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const textToRead = poi.folklore || poi.description;
+        currentUtterance = new SpeechSynthesisUtterance(textToRead);
+
+        // Setup timer to go to next stop after speech, or a minimum/maximum duration
+        let durationFallback = setTimeout(() => {
+            if (isTourRunning) {
+                tourIndex++;
+                playNextTourStop();
+            }
+        }, Math.max(8000, textToRead.length * 50)); // Fallback in case onend fails
+
+        currentUtterance.onend = () => {
+            clearTimeout(durationFallback);
+            if (isTourRunning) {
+                tourInterval = setTimeout(() => {
+                    tourIndex++;
+                    playNextTourStop();
+                }, 2000); // Wait 2s after speech finishes
+            }
+        };
+
+        window.speechSynthesis.speak(currentUtterance);
+    } else {
+        // Fallback if no TTS
+        tourInterval = setTimeout(() => {
+            tourIndex++;
+            playNextTourStop();
+        }, 8000);
+    }
 }
 
 function stopCinematicTour() {
     isTourRunning = false;
     if (tourInterval) {
-        clearInterval(tourInterval);
+        clearTimeout(tourInterval);
         tourInterval = null;
+    }
+
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
     }
 
     // UI feedback reset
@@ -598,10 +709,29 @@ function setupUIEventListeners(map) {
     const menuButton = document.getElementById('menu-button');
     const closeSidebarButton = document.getElementById('close-sidebar');
     const userLocationButton = document.getElementById('user-location-button');
+    const audioToggleButton = document.getElementById('audio-toggle-button');
+    const audioToggleIcon = document.getElementById('audio-toggle-icon');
     const poiContent = document.getElementById('poi-content');
     const handle = document.getElementById('sheet-handle');
     let userMarker;
     let userAccuracyCircle;
+
+    if (audioToggleButton) {
+        audioToggleButton.addEventListener('click', () => {
+            const isEnabled = AudioManager.toggleMute();
+            if (isEnabled) {
+                audioToggleIcon.classList.remove('fa-volume-mute');
+                audioToggleIcon.classList.add('fa-volume-up');
+                audioToggleIcon.classList.remove('text-brand-stone');
+                audioToggleIcon.classList.add('text-brand-moss');
+            } else {
+                audioToggleIcon.classList.remove('fa-volume-up');
+                audioToggleIcon.classList.add('fa-volume-mute');
+                audioToggleIcon.classList.remove('text-brand-moss');
+                audioToggleIcon.classList.add('text-brand-stone');
+            }
+        });
+    }
 
     poiContent.addEventListener('click', (e) => {
         if (e.target.closest('#home-button')) {
@@ -776,6 +906,10 @@ function navigateToPOI(poi) {
         animate: true,
         duration: 1.5
     });
+
+    // Play ambient sound
+    AudioManager.playCategory(poi.category);
+
     updateSidebar(poi);
     setActiveMarker(poi.id);
     // On mobile, show the bottom sheet as half to reveal map
