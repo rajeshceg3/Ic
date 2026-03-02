@@ -78,6 +78,9 @@ let favorites = new Set();
 let activeCategory = 'All';
 let searchTerm = '';
 
+// --- NIGHT MODE STATE ---
+let isNightMode = false;
+
 // --- CINEMATIC TOUR STATE ---
 let tourInterval = null;
 let tourIndex = 0;
@@ -519,6 +522,20 @@ function createInitialSidebarContent() {
 }
 
 function resetSidebar() {
+    // Remove Vignette Effect
+    const vignetteOverlay = document.getElementById('vignette-overlay');
+    if (vignetteOverlay) vignetteOverlay.style.opacity = '0';
+
+    // Clear active marker
+    if (activeMarkerId && markers[activeMarkerId]) {
+        const prevMarker = markers[activeMarkerId];
+        const prevIcon = prevMarker.getIcon();
+        prevIcon.options.className = prevIcon.options.className.replace(' active-marker', '');
+        prevMarker.setIcon(prevIcon);
+        prevMarker.setZIndexOffset(0);
+        activeMarkerId = null;
+    }
+
     createInitialSidebarContent();
 }
 
@@ -709,12 +726,35 @@ function setupUIEventListeners(map) {
     const menuButton = document.getElementById('menu-button');
     const closeSidebarButton = document.getElementById('close-sidebar');
     const userLocationButton = document.getElementById('user-location-button');
+    const nightModeButton = document.getElementById('night-mode-button');
+    const nightModeIcon = document.getElementById('night-mode-icon');
     const audioToggleButton = document.getElementById('audio-toggle-button');
     const audioToggleIcon = document.getElementById('audio-toggle-icon');
     const poiContent = document.getElementById('poi-content');
     const handle = document.getElementById('sheet-handle');
     let userMarker;
     let userAccuracyCircle;
+
+    if (nightModeButton) {
+        nightModeButton.addEventListener('click', () => {
+            isNightMode = !isNightMode;
+
+            // Toggle map dark mode and aurora
+            const mapContainer = document.getElementById('map');
+            const auroraOverlay = document.getElementById('aurora-overlay');
+            if (isNightMode) {
+                mapContainer.classList.add('map-dark-mode');
+                if(auroraOverlay) auroraOverlay.style.opacity = '1';
+                nightModeIcon.classList.remove('fa-moon', 'text-brand-stone');
+                nightModeIcon.classList.add('fa-sun', 'text-amber-400');
+            } else {
+                mapContainer.classList.remove('map-dark-mode');
+                if(auroraOverlay) auroraOverlay.style.opacity = '0';
+                nightModeIcon.classList.remove('fa-sun', 'text-amber-400');
+                nightModeIcon.classList.add('fa-moon', 'text-brand-stone');
+            }
+        });
+    }
 
     if (audioToggleButton) {
         audioToggleButton.addEventListener('click', () => {
@@ -909,6 +949,10 @@ function navigateToPOI(poi) {
 
     // Play ambient sound
     AudioManager.playCategory(poi.category);
+
+    // Apply Vignette Effect
+    const vignetteOverlay = document.getElementById('vignette-overlay');
+    if (vignetteOverlay) vignetteOverlay.style.opacity = '1';
 
     updateSidebar(poi);
     setActiveMarker(poi.id);
