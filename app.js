@@ -548,6 +548,10 @@ function resetSidebar() {
     const vignetteOverlay = document.getElementById('vignette-overlay');
     if (vignetteOverlay) vignetteOverlay.style.opacity = '0';
 
+    // Remove Weather Overlay
+    const weatherOverlay = document.getElementById('weather-overlay');
+    if (weatherOverlay) weatherOverlay.className = '';
+
     // Clear active marker
     if (activeMarkerId && markers[activeMarkerId]) {
         const prevMarker = markers[activeMarkerId];
@@ -604,7 +608,7 @@ function updateSidebar(poi) {
         heroWrapper.className = "relative w-[calc(100%+3rem)] -ml-6 -mt-2 md:-mt-6 shrink-0 z-10 mb-8";
 
         const heroImageContainer = document.createElement('div');
-        heroImageContainer.className = "relative h-80 w-full overflow-hidden rounded-b-3xl md:rounded-b-2xl shadow-md group";
+        heroImageContainer.className = "relative h-80 w-full overflow-hidden rounded-b-3xl md:rounded-b-2xl shadow-md group cursor-pointer";
 
         const image = document.createElement('img');
         image.src = poi.image;
@@ -617,6 +621,19 @@ function updateSidebar(poi) {
 
         const gradient = document.createElement('div');
         gradient.className = "absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none";
+
+        // Lightbox integration
+        heroImageContainer.addEventListener('click', () => {
+            const lightbox = document.getElementById('lightbox-overlay');
+            const lightboxImg = document.getElementById('lightbox-image');
+            if (lightbox && lightboxImg) {
+                lightboxImg.src = image.src;
+                lightbox.style.opacity = '1';
+                lightbox.style.pointerEvents = 'auto';
+                lightboxImg.classList.remove('scale-95');
+                lightboxImg.classList.add('scale-100');
+            }
+        });
 
         // Back Button
         const homeButton = document.createElement('button');
@@ -682,6 +699,19 @@ function updateSidebar(poi) {
         const conditions = ['Clear', 'Partly Cloudy', 'Snow Showers', 'Overcast', 'Windy'];
         const temp = temps[seed % temps.length];
         const condition = conditions[(seed * 2) % conditions.length];
+
+        // Apply Weather Overlay
+        const weatherOverlay = document.getElementById('weather-overlay');
+        if (weatherOverlay) {
+            weatherOverlay.className = ''; // Reset classes
+            if (condition === 'Snow Showers') {
+                weatherOverlay.classList.add('weather-snow');
+            } else if (condition === 'Overcast') {
+                weatherOverlay.classList.add('weather-overcast');
+            } else if (condition === 'Clear') {
+                weatherOverlay.classList.add('weather-clear');
+            }
+        }
 
         metaGrid.innerHTML += createMeta('fas fa-temperature-low', 'Current Temp', temp);
         metaGrid.innerHTML += createMeta('fas fa-cloud', 'Weather', condition);
@@ -760,6 +790,25 @@ function updateSidebar(poi) {
 }
 
 function setupUIEventListeners(map) {
+    // --- Zen Mode Logic ---
+    let idleTimeout;
+    const IDLE_DURATION = 10000; // 10 seconds
+
+    const resetIdleTimer = () => {
+        document.body.classList.remove('idle-mode');
+        clearTimeout(idleTimeout);
+        idleTimeout = setTimeout(() => {
+            document.body.classList.add('idle-mode');
+        }, IDLE_DURATION);
+    };
+
+    // Attach listeners to window for broad interaction tracking
+    ['mousemove', 'touchstart', 'keydown', 'scroll', 'click'].forEach(evt => {
+        window.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
+    // Start initial timer
+    resetIdleTimer();
+
     const sidebar = document.getElementById('poi-sidebar');
     const menuButton = document.getElementById('menu-button');
     const closeSidebarButton = document.getElementById('close-sidebar');
@@ -770,6 +819,8 @@ function setupUIEventListeners(map) {
     const audioToggleIcon = document.getElementById('audio-toggle-icon');
     const poiContent = document.getElementById('poi-content');
     const handle = document.getElementById('sheet-handle');
+    const lightboxOverlay = document.getElementById('lightbox-overlay');
+    const lightboxClose = document.getElementById('lightbox-close');
     let userMarker;
     let userAccuracyCircle;
 
@@ -844,6 +895,29 @@ function setupUIEventListeners(map) {
     closeSidebarButton.addEventListener('click', () => {
         setSheetState('peek');
     });
+
+    // Lightbox interactions
+    if (lightboxOverlay) {
+        const closeLightbox = () => {
+            lightboxOverlay.style.opacity = '0';
+            lightboxOverlay.style.pointerEvents = 'none';
+            const img = document.getElementById('lightbox-image');
+            if (img) {
+                img.classList.remove('scale-100');
+                img.classList.add('scale-95');
+            }
+        };
+
+        if (lightboxClose) {
+            lightboxClose.addEventListener('click', closeLightbox);
+        }
+
+        lightboxOverlay.addEventListener('click', (e) => {
+            if (e.target === lightboxOverlay) {
+                closeLightbox();
+            }
+        });
+    }
 
     // Bottom Sheet Interactions
     if (handle) {
@@ -1003,7 +1077,15 @@ function navigateToPOI(poi) {
 
     // Apply Vignette Effect
     const vignetteOverlay = document.getElementById('vignette-overlay');
-    if (vignetteOverlay) vignetteOverlay.style.opacity = '1';
+    if (vignetteOverlay) {
+        let gradientColor = 'rgba(0, 0, 0, 0.6)'; // Default dark
+        if (poi.category === 'waterfall') gradientColor = 'rgba(14, 165, 233, 0.3)'; // Brand Blue
+        else if (poi.category === 'landmark') gradientColor = 'rgba(245, 158, 11, 0.3)'; // Amber
+        else if (poi.category === 'park' || poi.category === 'geothermal') gradientColor = 'rgba(47, 82, 51, 0.3)'; // Brand Moss
+
+        vignetteOverlay.style.background = `radial-gradient(circle at center, transparent 30%, ${gradientColor} 100%)`;
+        vignetteOverlay.style.opacity = '1';
+    }
 
     updateSidebar(poi);
     setActiveMarker(poi.id);
