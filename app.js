@@ -3,6 +3,12 @@ let map;
 let globalPOIs = [];
 let activeTab = 'discover'; // 'discover' or 'logbook'
 
+function triggerHaptic(pattern) {
+    if ('vibrate' in navigator) {
+        navigator.vibrate(pattern);
+    }
+}
+
 // --- AUDIO MANAGER ---
 const AudioManager = {
     audioEnabled: false,
@@ -124,8 +130,17 @@ function playNextTourStop() {
         const textToRead = poi.folklore || poi.description;
         currentUtterance = new SpeechSynthesisUtterance(textToRead);
 
+        const subtitleOverlay = document.getElementById('subtitle-overlay');
+        const subtitleText = document.getElementById('subtitle-text');
+
+        if (subtitleOverlay && subtitleText) {
+            subtitleText.textContent = textToRead;
+            subtitleOverlay.style.opacity = '1';
+        }
+
         // Setup timer to go to next stop after speech, or a minimum/maximum duration
         let durationFallback = setTimeout(() => {
+            if (subtitleOverlay) subtitleOverlay.style.opacity = '0';
             if (isTourRunning) {
                 tourIndex++;
                 playNextTourStop();
@@ -134,6 +149,7 @@ function playNextTourStop() {
 
         currentUtterance.onend = () => {
             clearTimeout(durationFallback);
+            if (subtitleOverlay) subtitleOverlay.style.opacity = '0';
             if (isTourRunning) {
                 tourInterval = setTimeout(() => {
                     tourIndex++;
@@ -162,6 +178,9 @@ function stopCinematicTour() {
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
     }
+
+    const subtitleOverlay = document.getElementById('subtitle-overlay');
+    if (subtitleOverlay) subtitleOverlay.style.opacity = '0';
 
     // UI feedback reset
     const tourBtn = document.getElementById('tour-btn');
@@ -207,13 +226,16 @@ function toggleFavorite(id) {
     let justAdded = false;
     if (favorites.has(id)) {
         favorites.delete(id);
+        triggerHaptic([50]);
     } else {
         favorites.add(id);
         justAdded = true;
+        triggerHaptic([50]);
     }
     saveFavorites();
 
     if (justAdded && (favorites.size === 3 || favorites.size === 7)) {
+        triggerHaptic([100, 50, 100]);
         triggerConfetti();
     }
 }
@@ -653,6 +675,22 @@ function updateSidebar(poi) {
         if (poi.bestTime) metaGrid.innerHTML += createMeta('far fa-clock', 'Best Time', poi.bestTime);
         if (poi.accessibility) metaGrid.innerHTML += createMeta('fas fa-universal-access', 'Access', poi.accessibility);
 
+        // --- Simulated Live Conditions ---
+        // Create deterministic pseudo-random seed based on POI ID
+        const seed = String(poi.id).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const temps = ['-2°C', '0°C', '3°C', '5°C', '8°C'];
+        const conditions = ['Clear', 'Partly Cloudy', 'Snow Showers', 'Overcast', 'Windy'];
+        const temp = temps[seed % temps.length];
+        const condition = conditions[(seed * 2) % conditions.length];
+
+        metaGrid.innerHTML += createMeta('fas fa-temperature-low', 'Current Temp', temp);
+        metaGrid.innerHTML += createMeta('fas fa-cloud', 'Weather', condition);
+
+        if (isNightMode) {
+            const auroraChance = ['Low', 'Moderate', 'High', 'Very High'][(seed * 3) % 4];
+            metaGrid.innerHTML += createMeta('fas fa-magic', 'Aurora Chance', auroraChance);
+        }
+
         // Description
         const desc = document.createElement('div');
         desc.className = "prose prose-slate prose-sm text-brand-stone mb-10 leading-7 font-normal text-base max-w-none";
@@ -734,6 +772,19 @@ function setupUIEventListeners(map) {
     const handle = document.getElementById('sheet-handle');
     let userMarker;
     let userAccuracyCircle;
+
+    // Spatial Audio (Zoom-linked volume)
+    map.on('zoom', () => {
+        if (AudioManager.audioEnabled && AudioManager.currentAudio) {
+            const zoom = map.getZoom();
+            // Map zoom levels (typically 6-16) to a volume multiplier
+            // Closer zoom -> higher volume
+            let baseVol = 0.4;
+            let multiplier = (zoom - 6) / 10; // 0 at zoom 6, 1 at zoom 16
+            multiplier = Math.max(0.1, Math.min(1, multiplier)); // Clamp between 0.1 and 1
+            AudioManager.currentAudio.volume = baseVol * multiplier;
+        }
+    });
 
     if (nightModeButton) {
         nightModeButton.addEventListener('click', () => {
