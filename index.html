@@ -172,6 +172,40 @@
             100% { background-position: 0% 50%; }
         }
 
+        /* Weather Overlay */
+        #weather-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 6; /* Same as aurora, below UI */
+            opacity: 0;
+            transition: opacity 2s ease-in-out, background 2s ease-in-out;
+        }
+        /* Weather specific classes applied dynamically */
+        .weather-snow {
+            opacity: 1 !important;
+            background:
+                radial-gradient(circle at center, transparent 0%, rgba(255, 255, 255, 0.4) 100%),
+                url('data:image/svg+xml,%3Csvg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Ccircle cx="10" cy="10" r="1.5" fill="%23ffffff" opacity="0.6"/%3E%3Ccircle cx="40" cy="40" r="2" fill="%23ffffff" opacity="0.8"/%3E%3Ccircle cx="80" cy="20" r="1" fill="%23ffffff" opacity="0.4"/%3E%3Ccircle cx="60" cy="80" r="1.5" fill="%23ffffff" opacity="0.7"/%3E%3C/svg%3E');
+            background-size: 100px 100px;
+            animation: snow-fall 10s linear infinite;
+        }
+        .weather-overcast {
+            opacity: 1 !important;
+            background: radial-gradient(circle at center, transparent 0%, rgba(100, 116, 139, 0.3) 100%);
+            mix-blend-mode: multiply;
+        }
+        .weather-clear {
+            opacity: 1 !important;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+            mix-blend-mode: overlay;
+        }
+
+        @keyframes snow-fall {
+            0% { background-position: 0px 0px, 0px 0px; }
+            100% { background-position: 0px 0px, 100px 200px; }
+        }
+
         #atmosphere-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -266,6 +300,19 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Zen Mode (Idle UI Hide) */
+        body.idle-mode .leaflet-control-container,
+        body.idle-mode #night-mode-button,
+        body.idle-mode #audio-toggle-button,
+        body.idle-mode #user-location-button,
+        body.idle-mode #menu-button {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        body.idle-mode #poi-sidebar {
+            opacity: 0.85;
+        }
+
         /* Marker Active State Polish */
         .custom-div-icon div {
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -334,20 +381,22 @@
             <div id="map"></div>
             <!-- Atmospheric Overlay -->
             <div id="atmosphere-overlay"></div>
+            <!-- Weather Overlay -->
+            <div id="weather-overlay"></div>
             <!-- Aurora Overlay -->
             <div id="aurora-overlay"></div>
             <!-- Vignette Overlay -->
             <div id="vignette-overlay"></div>
-             <button id="menu-button" class="md:hidden absolute top-4 left-4 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-moss transition-all active:scale-95" aria-label="Open sidebar">
+             <button id="menu-button" class="md:hidden absolute top-4 left-4 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-moss transition-all duration-500 active:scale-95" aria-label="Open sidebar">
                 <i class="fas fa-bars fa-lg"></i>
             </button>
-             <button id="night-mode-button" class="absolute bottom-56 right-4 md:bottom-40 md:right-8 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-moss transition-all active:scale-95 group" aria-label="Toggle Night Mode">
+             <button id="night-mode-button" class="absolute bottom-56 right-4 md:bottom-40 md:right-8 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-moss transition-all duration-500 active:scale-95 group" aria-label="Toggle Night Mode">
                 <i id="night-mode-icon" class="fas fa-moon fa-lg text-brand-stone group-hover:text-brand-moss transition-colors"></i>
             </button>
-             <button id="audio-toggle-button" class="absolute bottom-40 right-4 md:bottom-24 md:right-8 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-moss transition-all active:scale-95 group" aria-label="Toggle Audio">
+             <button id="audio-toggle-button" class="absolute bottom-40 right-4 md:bottom-24 md:right-8 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-moss transition-all duration-500 active:scale-95 group" aria-label="Toggle Audio">
                 <i id="audio-toggle-icon" class="fas fa-volume-mute fa-lg text-brand-stone group-hover:text-brand-moss transition-colors"></i>
             </button>
-             <button id="user-location-button" class="absolute bottom-24 right-4 md:bottom-8 md:right-8 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-blue transition-all active:scale-95 group" aria-label="Get my location">
+             <button id="user-location-button" class="absolute bottom-24 right-4 md:bottom-8 md:right-8 glass-panel p-3 rounded-full shadow-lg z-30 text-brand-deep hover:text-brand-blue transition-all duration-500 active:scale-95 group" aria-label="Get my location">
                 <i class="fas fa-location-arrow fa-lg text-brand-stone group-hover:text-brand-blue transition-colors"></i>
             </button>
         </div>
@@ -356,6 +405,14 @@
     <!-- Subtitle Overlay -->
     <div id="subtitle-overlay" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-[2000] pointer-events-none opacity-0 transition-opacity duration-300 text-center w-11/12 md:w-auto">
         <div id="subtitle-text" class="inline-block bg-black/60 backdrop-blur-md text-white px-6 py-3 rounded-2xl shadow-lg border border-white/20 font-serif text-lg"></div>
+    </div>
+
+    <!-- Image Lightbox Overlay -->
+    <div id="lightbox-overlay" class="fixed inset-0 z-[3000] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-500 flex items-center justify-center p-4">
+        <button id="lightbox-close" class="absolute top-6 right-6 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 transition-all z-10" aria-label="Close image">
+            <i class="fas fa-times fa-lg"></i>
+        </button>
+        <img id="lightbox-image" src="" alt="Expanded View" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl transform scale-95 transition-transform duration-500">
     </div>
 
     <script src="app.js"></script>
