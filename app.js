@@ -233,6 +233,7 @@ function toggleFavorite(id) {
         triggerHaptic([50]);
     }
     saveFavorites();
+    updateMarkerIcon(id);
 
     if (justAdded && (favorites.size === 3 || favorites.size === 7)) {
         triggerHaptic([100, 50, 100]);
@@ -544,6 +545,10 @@ function createInitialSidebarContent() {
 }
 
 function resetSidebar() {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+
     // Remove Vignette Effect
     const vignetteOverlay = document.getElementById('vignette-overlay');
     if (vignetteOverlay) vignetteOverlay.style.opacity = '0';
@@ -749,6 +754,38 @@ function updateSidebar(poi) {
             `;
         }
 
+        // Listen Button
+        const listenBtn = document.createElement('button');
+        listenBtn.className = "block w-full bg-brand-blue text-white font-bold text-center py-4 rounded-xl shadow-lg hover:shadow-xl hover:bg-brand-moss transition-all transform hover:-translate-y-1 mb-4 flex items-center justify-center";
+        listenBtn.innerHTML = `<i class="fas fa-volume-up mr-2"></i> Listen to Story`;
+
+        let isPlaying = false;
+        listenBtn.onclick = () => {
+            if ('speechSynthesis' in window) {
+                if (isPlaying) {
+                    window.speechSynthesis.cancel();
+                    listenBtn.innerHTML = `<i class="fas fa-volume-up mr-2"></i> Listen to Story`;
+                    listenBtn.classList.replace('bg-brand-lava', 'bg-brand-blue');
+                    isPlaying = false;
+                } else {
+                    window.speechSynthesis.cancel();
+                    const textToRead = poi.folklore || poi.description;
+                    const utterance = new SpeechSynthesisUtterance(textToRead);
+                    utterance.onend = () => {
+                        listenBtn.innerHTML = `<i class="fas fa-volume-up mr-2"></i> Listen to Story`;
+                        listenBtn.classList.replace('bg-brand-lava', 'bg-brand-blue');
+                        isPlaying = false;
+                    };
+                    window.speechSynthesis.speak(utterance);
+                    listenBtn.innerHTML = `<i class="fas fa-stop mr-2"></i> Stop Listening`;
+                    listenBtn.classList.replace('bg-brand-blue', 'bg-brand-lava');
+                    isPlaying = true;
+                }
+            } else {
+                alert("Text-to-speech is not supported in your browser.");
+            }
+        };
+
         // Link Button
         const linkBtn = document.createElement('a');
         linkBtn.href = poi.link;
@@ -756,7 +793,7 @@ function updateSidebar(poi) {
         linkBtn.className = "block w-full bg-brand-deep text-white font-bold text-center py-4 rounded-xl shadow-lg hover:shadow-xl hover:bg-brand-moss transition-all transform hover:-translate-y-1 mb-8 flex items-center justify-center";
         linkBtn.innerHTML = `Read Full Guide <i class="fas fa-external-link-alt ml-2 text-xs opacity-70"></i>`;
 
-        contentDiv.append(titleDiv, metaGrid, desc, extras, linkBtn);
+        contentDiv.append(titleDiv, metaGrid, desc, extras, listenBtn, linkBtn);
 
         // Navigation Controls
         const navDiv = document.createElement('div');
@@ -1063,6 +1100,10 @@ function showSidebarError(message) {
 
 // --- NAVIGATION ---
 function navigateToPOI(poi) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+
     // Prevent occlusion by manually offsetting the coordinate
     const lngOffset = window.innerWidth >= 768 ? -0.1 : 0;
     const latOffset = window.innerWidth < 768 ? -0.05 : 0;
@@ -1122,13 +1163,14 @@ function setActiveMarker(id) {
     }
 }
 
-function createIcon(iconName, color) {
+function createIcon(iconName, color, isFav = false) {
     // Refined marker with better shadow and opacity pulse
     const iconHtml = `
         <span class="absolute inset-0 rounded-full animate-[pulse-ring_2.5s_cubic-bezier(0.2,0,0,1)_infinite]" style="background-color: ${color}; opacity: 0.4; z-index: -1;"></span>
         <div role="button" tabindex="0" class="w-10 h-10 rounded-full flex items-center justify-center border-[3px] border-white shadow-lg z-10 transition-transform duration-300" style="background-color: ${color};">
             <i class="fas fa-${iconName} text-white text-base drop-shadow-md"></i>
         </div>
+        ${isFav ? '<div class="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-brand-mist z-20"><i class="fas fa-heart text-brand-lava text-[10px]"></i></div>' : ''}
     `;
     return L.divIcon({
         html: iconHtml,
@@ -1139,33 +1181,60 @@ function createIcon(iconName, color) {
     });
 }
 
-function addMarkersToMap(map, pointsOfInterest) {
-    const icons = {
-        waterfall: createIcon('water', '#0EA5E9'), // Sky 500
-        geothermal: createIcon('fire', '#E11D48'), // Rose 600
-        town: createIcon('city', '#64748B'), // Slate 500
-        landmark: createIcon('landmark', '#F59E0B'), // Amber 500
-        park: createIcon('tree', '#2F5233') // Brand Moss
-    };
+function getIconForCategory(category, isFav) {
+    switch(category) {
+        case 'waterfall': return createIcon('water', '#0EA5E9', isFav);
+        case 'geothermal': return createIcon('fire', '#E11D48', isFav);
+        case 'town': return createIcon('city', '#64748B', isFav);
+        case 'landmark': return createIcon('landmark', '#F59E0B', isFav);
+        case 'park': return createIcon('tree', '#2F5233', isFav);
+        default: return createIcon('landmark', '#F59E0B', isFav);
+    }
+}
 
+function updateMarkerIcon(id) {
+    if (markers[id]) {
+        const marker = markers[id];
+        const poi = globalPOIs.find(p => p.id === id);
+        if (poi) {
+            const isFav = favorites.has(id);
+            const newIcon = getIconForCategory(poi.category, isFav);
+            // preserve active state if it was active
+            if (activeMarkerId === id) {
+                newIcon.options.className += ' active-marker';
+            }
+            marker.setIcon(newIcon);
+        }
+    }
+}
+
+function addMarkersToMap(map, pointsOfInterest) {
     pointsOfInterest.forEach(poi => {
-        const marker = L.marker([poi.lat, poi.lng], { icon: icons[poi.category] || icons.landmark }).addTo(map);
+        const isFav = favorites.has(poi.id);
+        const marker = L.marker([poi.lat, poi.lng], { icon: getIconForCategory(poi.category, isFav) }).addTo(map);
         markers[poi.id] = marker; // Store marker reference
 
         // Polished Popup Content
         const popupHtml = `
-            <div class="px-1 py-2 min-w-[180px]">
-                <h3 class="text-lg font-bold text-brand-deep font-serif leading-tight mb-1">${poi.name}</h3>
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-brand-stone bg-brand-mist/50 px-2 py-0.5 rounded-full">${poi.category}</span>
-                    <span class="text-brand-blue text-xs font-medium group-hover:translate-x-1 transition-transform"><i class="fas fa-chevron-right"></i></span>
+            <div class="min-w-[200px] overflow-hidden rounded-xl">
+                <div class="h-24 w-full relative">
+                    <img src="${poi.image || 'https://placehold.co/400x300/e2e8f0/64748b?text=Iceland'}" alt="${poi.name}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e2e8f0/64748b?text=Iceland';">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                </div>
+                <div class="px-3 py-2 -mt-6 relative z-10 bg-white">
+                    <h3 class="text-base font-bold text-brand-deep font-serif leading-tight mb-1 truncate">${poi.name}</h3>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-brand-stone bg-brand-mist/50 px-2 py-0.5 rounded-full">${poi.category}</span>
+                        <span class="text-brand-blue text-xs font-medium group-hover:translate-x-1 transition-transform"><i class="fas fa-chevron-right"></i></span>
+                    </div>
                 </div>
             </div>
         `;
 
         marker.bindPopup(popupHtml, {
             closeButton: false,
-            offset: [0, -4]
+            offset: [0, -4],
+            className: 'custom-popup' // Will style this if needed
         });
 
         marker.on('mouseover', function (e) {
