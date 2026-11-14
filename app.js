@@ -97,6 +97,7 @@ let currentUtterance = null;
 function startCinematicTour() {
     if (globalPOIs.length === 0) return;
     isTourRunning = true;
+    document.body.classList.add('tour-running');
     tourIndex = 0;
 
     // UI feedback
@@ -170,6 +171,7 @@ function playNextTourStop() {
 
 function stopCinematicTour() {
     isTourRunning = false;
+    document.body.classList.remove('tour-running');
     if (tourInterval) {
         clearTimeout(tourInterval);
         tourInterval = null;
@@ -371,6 +373,7 @@ function renderSidebarTabs() {
 }
 
 function createInitialSidebarContent() {
+    document.body.classList.remove('place-open');
     const poiContent = document.getElementById('poi-content');
     poiContent.innerHTML = ''; // Clear existing content
 
@@ -453,6 +456,8 @@ function createInitialSidebarContent() {
                     </div>
                 </div>
             `;
+            item.setAttribute('role', 'button'); item.tabIndex = 0;
+            item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateToPOI(poi); } });
             item.addEventListener('click', () => navigateToPOI(poi));
             poiList.appendChild(item);
         });
@@ -536,6 +541,8 @@ function createInitialSidebarContent() {
                         <i class="fas fa-chevron-right text-sm"></i>
                     </div>
                 `;
+                item.setAttribute('role', 'button'); item.tabIndex = 0;
+                item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateToPOI(poi); } });
                 item.addEventListener('click', () => navigateToPOI(poi));
                 poiList.appendChild(item);
              });
@@ -587,9 +594,16 @@ function setSheetState(state) {
     // Add new state class
     sidebar.classList.add(`sheet-${state}`);
     sheetState = state;
+    const open = state === 'half' || state === 'full';
+    sidebar.inert = !open;
+    document.body.classList.toggle('fieldbook-open', open);
+    document.getElementById('menu-button').setAttribute('aria-expanded', String(open));
+    if (!open) requestAnimationFrame(() => document.getElementById('menu-button').focus({ preventScroll: true }));
+    else requestAnimationFrame(() => document.getElementById('close-sidebar').focus({ preventScroll: true }));
 }
 
 function updateSidebar(poi) {
+    document.body.classList.add('place-open');
     const poiContent = document.getElementById('poi-content');
     const tabsContainer = document.getElementById('sidebar-tabs');
     const sidebar = document.getElementById('poi-sidebar');
@@ -646,7 +660,7 @@ function updateSidebar(poi) {
         homeButton.className = 'absolute top-4 left-4 z-20 text-white hover:text-brand-blue transition-all p-2 bg-black/20 hover:bg-black/50 backdrop-blur-md rounded-full w-10 h-10 flex items-center justify-center border border-white/20';
         homeButton.setAttribute('aria-label', 'Back to home');
         homeButton.innerHTML = '<i class="fas fa-arrow-left"></i>';
-        homeButton.onclick = resetSidebar;
+        homeButton.onclick = e => { e.stopPropagation(); resetSidebar(); };
 
         heroImageContainer.append(image, gradient, homeButton);
 
@@ -654,6 +668,7 @@ function updateSidebar(poi) {
         const isFav = favorites.has(poi.id);
         const heartBtn = document.createElement('button');
         heartBtn.className = `absolute -bottom-6 right-8 z-30 w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${isFav ? 'bg-brand-lava text-white' : 'bg-white text-brand-stone hover:text-brand-lava'}`;
+        heartBtn.setAttribute('aria-label', 'Save or remove '+poi.name);
         heartBtn.innerHTML = `<i class="${isFav ? 'fas' : 'far'} fa-heart fa-xl ${isFav ? 'animate-bounce' : ''}"></i>`;
         heartBtn.onclick = (e) => {
             e.stopPropagation();
@@ -718,12 +733,12 @@ function updateSidebar(poi) {
             }
         }
 
-        metaGrid.innerHTML += createMeta('fas fa-temperature-low', 'Current Temp', temp);
-        metaGrid.innerHTML += createMeta('fas fa-cloud', 'Weather', condition);
+        metaGrid.innerHTML += createMeta('fas fa-temperature-low', 'Scene temp', temp);
+        metaGrid.innerHTML += createMeta('fas fa-cloud', 'Scene weather', condition);
 
         if (isNightMode) {
             const auroraChance = ['Low', 'Moderate', 'High', 'Very High'][(seed * 3) % 4];
-            metaGrid.innerHTML += createMeta('fas fa-magic', 'Aurora Chance', auroraChance);
+            metaGrid.innerHTML += createMeta('fas fa-magic', 'Scene aurora', auroraChance);
         }
 
         // Description
@@ -793,7 +808,10 @@ function updateSidebar(poi) {
         linkBtn.className = "block w-full bg-brand-deep text-white font-bold text-center py-4 rounded-xl shadow-lg hover:shadow-xl hover:bg-brand-moss transition-all transform hover:-translate-y-1 mb-8 flex items-center justify-center";
         linkBtn.innerHTML = `Read Full Guide <i class="fas fa-external-link-alt ml-2 text-xs opacity-70"></i>`;
 
-        contentDiv.append(titleDiv, metaGrid, desc, extras, listenBtn, linkBtn);
+        const conditionNote = document.createElement('p');
+        conditionNote.className = 'text-xs text-brand-stone mb-5';
+        conditionNote.textContent = 'Illustrative scene conditions, not a live forecast.';
+        contentDiv.append(titleDiv, desc, conditionNote, metaGrid, extras, listenBtn, linkBtn);
 
         // Navigation Controls
         const navDiv = document.createElement('div');
@@ -918,19 +936,17 @@ function setupUIEventListeners(map) {
         }
     });
 
-    menuButton.addEventListener('click', () => {
-        // Toggle between full and hidden/peek/half
-        if (sheetState === 'hidden' || sheetState === 'peek') {
-            setSheetState('half');
-        } else if (sheetState === 'half') {
-            setSheetState('full');
-        } else {
-            setSheetState('peek');
-        }
+    document.getElementById('fieldbook-stop-tour').addEventListener('click', stopCinematicTour);
+    const tools = document.getElementById('fieldbook-tools');
+    [[nightModeButton, 'Night'], [audioToggleButton, 'Sound'], [userLocationButton, 'Locate']].forEach(([button, label]) => {
+        const text = document.createElement('span'); text.textContent = label;
+        button.appendChild(text); tools.appendChild(button);
     });
-
-    closeSidebarButton.addEventListener('click', () => {
-        setSheetState('peek');
+    menuButton.addEventListener('click', () => setSheetState(sheetState === 'hidden' || sheetState === 'peek' ? 'full' : 'hidden'));
+    closeSidebarButton.addEventListener('click', () => setSheetState('hidden'));
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && lightboxOverlay.style.pointerEvents === 'auto') lightboxClose.click();
+        else if (e.key === 'Escape') setSheetState('hidden');
     });
 
     // Lightbox interactions
@@ -1130,10 +1146,8 @@ function navigateToPOI(poi) {
 
     updateSidebar(poi);
     setActiveMarker(poi.id);
-    // On mobile, show the bottom sheet as half to reveal map
-    if (window.innerWidth < 768) {
-        setSheetState('half');
-    }
+    // A place opens the readable fieldbook at either viewport.
+    setSheetState('full');
 }
 
 // --- MARKERS ---
@@ -1265,10 +1279,8 @@ function main() {
     renderSidebarTabs();
     createInitialSidebarContent();
 
-    // Initial State for Mobile
-    if (window.innerWidth < 768) {
-        setSheetState('peek');
-    }
+    // Both viewports start on the map, with the fieldbook explicitly closed.
+    setSheetState('hidden');
 
     fetch('data.json')
         .then(response => response.json())
